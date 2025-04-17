@@ -74,22 +74,26 @@ def plot_grain_size_distribution(percent_passing, ax):
     # Plot percent passing lines and points
     for target in target_percents:
         try:
-            # Use linear interpolation for D-value calculations
-            f = interp1d(percentages[::-1], sizes[::-1], bounds_error=False, fill_value="extrapolate")
-            x_intersect = f(target)
-            d_values.append(x_intersect)
-            # Plot horizontal line in blue
-            ax.axhline(y=target, color='blue', linestyle='-', linewidth=1, alpha=0.3)
-            # Plot intersection point
-            ax.scatter(x_intersect, target, color='blue', s=50, zorder=6)
-            # Add label with larger font
-            ax.annotate(f'D{target}={x_intersect:.3f}mm',
-                       xy=(x_intersect, target),
-                       xytext=(5, 5),
-                       textcoords='offset points',
-                       color='blue',
-                       fontsize=10,
-                       fontweight='bold')
+            # Check if target percent is within the range of data
+            if min(percentages) <= target <= max(percentages):
+                # Use linear interpolation for D-value calculations
+                f = interp1d(percentages[::-1], sizes[::-1], bounds_error=False, fill_value="extrapolate")
+                x_intersect = f(target)
+                d_values.append(x_intersect)
+                # Plot horizontal line in blue
+                ax.axhline(y=target, color='blue', linestyle='-', linewidth=1, alpha=0.3)
+                # Plot intersection point
+                ax.scatter(x_intersect, target, color='blue', s=50, zorder=6)
+                # Add label with larger font
+                ax.annotate(f'D{target}={x_intersect:.3f}mm',
+                           xy=(x_intersect, target),
+                           xytext=(5, 5),
+                           textcoords='offset points',
+                           color='blue',
+                           fontsize=10,
+                           fontweight='bold')
+            else:
+                d_values.append(None)
         except:
             d_values.append(None)
     
@@ -666,11 +670,15 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
             # Calculate Cu and Cc if d_values are available
             cu_display = "None"
             cc_display = "None"
-            if all(d_values):
-                cu = d_values[0]/d_values[2]  # D60/D10
-                cc = (d_values[1]**2)/(d_values[0]*d_values[2])  # (D30)²/(D60*D10)
-                cu_display = f"{cu:.2f}"
-                cc_display = f"{cc:.2f}"
+            if all(d_values) and None not in d_values:
+                # Only calculate if all D-values are valid and positive
+                if all(d > 0 for d in d_values):
+                    cu = d_values[0]/d_values[2]  # D60/D10
+                    cc = (d_values[1]**2)/(d_values[0]*d_values[2])  # (D30)²/(D60*D10)
+                    # Only display if the values make physical sense
+                    if cu > 0 and cc > 0:
+                        cu_display = f"{cu:.2f}"
+                        cc_display = f"{cc:.2f}"
             
             # Format values with proper precision and add % symbol
             p200_display = f"{p200:.1f}%" if p200 is not None else "None"
