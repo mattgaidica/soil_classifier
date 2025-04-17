@@ -115,6 +115,10 @@ def plot_grain_size_distribution(percent_passing, ax):
 
 def determine_classification(percent_passing, d_values, liquid_limit=None, plasticity_index=None):
     """Determine USCS soil classification."""
+    # Sieve sizes in mm (from largest to smallest)
+    sieve_sizes = [25.4, 12.7, 9.5, 4.75, 2.0, 0.85, 0.425, 0.25, 
+                   0.15, 0.075, 0.05, 0.02, 0.005, 0.002]
+    
     # Get percent passing #200 (0.075mm) and #4 (4.75mm)
     p200 = percent_passing[9]  # Index 9 is #200 sieve
     p4 = percent_passing[3]    # Index 3 is #4 sieve
