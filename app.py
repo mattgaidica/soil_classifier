@@ -152,6 +152,14 @@ def determine_classification(percent_passing, d_values, liquid_limit=None, plast
     is_non_plastic = (isinstance(liquid_limit, str) and liquid_limit.upper() == "NP") or \
                     (isinstance(plasticity_index, str) and plasticity_index.upper() == "NP")
     
+    # Determine if fines are clay or silt using A-line
+    is_clay = False
+    if liquid_limit is not None and plasticity_index is not None and \
+       not isinstance(liquid_limit, str) and not isinstance(plasticity_index, str):
+        a_line_pi = 0.73 * (liquid_limit - 20)
+        is_clay = plasticity_index > a_line_pi
+        calc_text.append(f"A-line PI = {a_line_pi:.1f}")
+    
     # Classification logic
     if p200 < 50:  # Coarse-grained
         # If #4 passing is None, use the next available sieve size
@@ -188,16 +196,14 @@ def determine_classification(percent_passing, d_values, liquid_limit=None, plast
                 if is_non_plastic:
                     classification = f"{base}M"
                     calc_text.append("→ Silty fines (Non-plastic)")
-                elif plasticity_index is not None and not isinstance(plasticity_index, str):
-                    if plasticity_index > 7:
+                elif liquid_limit is not None and plasticity_index is not None and \
+                     not isinstance(liquid_limit, str) and not isinstance(plasticity_index, str):
+                    if is_clay:
                         classification = f"{base}C"
-                        calc_text.append("→ Clay fines (PI>7)")
-                    elif 4 <= plasticity_index <= 7:
-                        classification = "SC-SM" if base == "S" else "GC-GM"
-                        calc_text.append("→ Silty-clay fines (4≤PI≤7)")
+                        calc_text.append("→ Clay fines (above A-line)")
                     else:
                         classification = f"{base}M"
-                        calc_text.append("→ Silty fines (PI<4)")
+                        calc_text.append("→ Silty fines (below A-line)")
             else:  # 5% ≤ p200 ≤ 12%
                 if is_non_plastic:
                     classification = f"{base}M"
@@ -207,13 +213,11 @@ def determine_classification(percent_passing, d_values, liquid_limit=None, plast
                     if all(d_values):
                         well_graded = (base == "G" and cu >= 4 and 1 <= cc <= 3) or (base == "S" and cu >= 6 and 1 <= cc <= 3)
                         if well_graded:
-                            if plasticity_index is not None:
-                                if plasticity_index > 7:
+                            if liquid_limit is not None and plasticity_index is not None and \
+                               not isinstance(liquid_limit, str) and not isinstance(plasticity_index, str):
+                                if is_clay:
                                     classification = f"{base}W-{base}C"
                                     calc_text.append("→ Well-graded with clay fines")
-                                elif 4 <= plasticity_index <= 7:
-                                    classification = "SW-SM" if base == "S" else "GW-GM"
-                                    calc_text.append("→ Well-graded with silty fines")
                                 else:
                                     classification = f"{base}W-{base}M"
                                     calc_text.append("→ Well-graded with silty fines")
@@ -221,13 +225,11 @@ def determine_classification(percent_passing, d_values, liquid_limit=None, plast
                                 classification = f"{base}W-{base}M"
                                 calc_text.append("→ Well-graded with silty fines (default)")
                         else:
-                            if plasticity_index is not None:
-                                if plasticity_index > 7:
+                            if liquid_limit is not None and plasticity_index is not None and \
+                               not isinstance(liquid_limit, str) and not isinstance(plasticity_index, str):
+                                if is_clay:
                                     classification = f"{base}P-{base}C"
                                     calc_text.append("→ Poorly-graded with clay fines")
-                                elif 4 <= plasticity_index <= 7:
-                                    classification = "SP-SM" if base == "S" else "GP-GM"
-                                    calc_text.append("→ Poorly-graded with silty fines")
                                 else:
                                     classification = f"{base}P-{base}M"
                                     calc_text.append("→ Poorly-graded with silty fines")
@@ -252,7 +254,7 @@ def determine_classification(percent_passing, d_values, liquid_limit=None, plast
                     classification = "CL-ML"
                     calc_text.append("→ Silty clay (4≤PI≤7)")
             else:
-                if plasticity_index > 0.73 * (liquid_limit - 20):
+                if is_clay:
                     classification = "CH"
                     calc_text.append("→ High plasticity clay")
                 else:
