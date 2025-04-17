@@ -359,22 +359,23 @@ if st.button("Classify Soil", type="primary"):
                 ax2.scatter(st.session_state.input_values['ll'], pi, color='red', s=50)
             st.pyplot(fig)
         
-        with res_col2:
-            st.markdown("### Classification Details")
-            classification, calc_text = determine_classification(
-                percent_passing, d_values, st.session_state.input_values['ll'], pi)
+        # Display classification details in its own row
+        st.markdown("---")
+        st.markdown("### Classification Details")
+        classification, calc_text = determine_classification(
+            percent_passing, d_values, st.session_state.input_values['ll'], pi)
+        
+        with st.container(border=True):
+            st.markdown("#### Classification Process")
+            st.markdown(calc_text)
             
-            with st.container(border=True):
-                st.markdown("#### Classification Process")
-                st.markdown(calc_text)
-                
-                if st.session_state.input_values['ll'] is not None and st.session_state.input_values['pl'] is not None:
-                    st.markdown(f"""
-                    #### Atterberg Limits
-                    - Liquid Limit (LL) = {st.session_state.input_values['ll']}
-                    - Plastic Limit (PL) = {st.session_state.input_values['pl']}
-                    - Plasticity Index (PI) = {pi}
-                    """)
+            if st.session_state.input_values['ll'] is not None and st.session_state.input_values['pl'] is not None:
+                st.markdown(f"""
+                #### Atterberg Limits
+                - Liquid Limit (LL) = {st.session_state.input_values['ll']}
+                - Plastic Limit (PL) = {st.session_state.input_values['pl']}
+                - Plasticity Index (PI) = {pi}
+                """)
         
         # Display classification in its own row at the bottom
         st.markdown("---")
