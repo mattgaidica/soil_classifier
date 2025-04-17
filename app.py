@@ -304,7 +304,7 @@ st.markdown("""
 # Title and description
 st.title("USCS Soil Classification Tool")
 st.markdown("""
-This tool helps classify soils according to the Unified Soil Classification System (USCS).
+This tool helps classify soils according to the Unified Soil Classification System (USCS) according to ASTM D2487.
 Enter the percent passing values for each sieve size and optional Atterberg limits.
 """)
 
@@ -405,9 +405,6 @@ with col8:
         st.session_state.classify_clicked = True
         st.rerun()
 
-# Create three columns for input organization
-col1, col2, col3 = st.columns(3)
-
 # Initialize session state for input values if not exists
 if 'input_values' not in st.session_state:
     st.session_state.input_values = {
@@ -417,49 +414,88 @@ if 'input_values' not in st.session_state:
         'll': None, 'pl': None
     }
 
+# Add a clear button at the top of the inputs
+if st.button("Clear All Inputs"):
+    st.session_state.input_values = {
+        'inch1': None, 'half_inch': None, 'three_eighth': None, 'no4': None, 'no10': None,
+        'no20': None, 'no40': None, 'no60': None, 'no100': None, 'no200': None,
+        'p050': None, 'p020': None, 'p005': None, 'p002': None,
+        'll': None, 'pl': None
+    }
+    st.rerun()
+
+# Create three columns for input organization
+col1, col2, col3 = st.columns(3)
+
 # Sieve input fields
 with col1:
     st.subheader("Coarse Sieves")
-    st.session_state.input_values['inch1'] = st.number_input("1\" (25.4mm)", min_value=None, max_value=100.0, 
-                                                            value=st.session_state.input_values['inch1'], step=0.1, format="%.1f")
-    st.session_state.input_values['half_inch'] = st.number_input("1/2\" (12.7mm)", min_value=None, max_value=100.0, 
-                                                                value=st.session_state.input_values['half_inch'], step=0.1, format="%.1f")
-    st.session_state.input_values['three_eighth'] = st.number_input("3/8\" (9.5mm)", min_value=None, max_value=100.0, 
-                                                                   value=st.session_state.input_values['three_eighth'], step=0.1, format="%.1f")
-    st.session_state.input_values['no4'] = st.number_input("No. 4 (4.75mm)", min_value=None, max_value=100.0, 
-                                                          value=st.session_state.input_values['no4'], step=0.1, format="%.1f")
-    st.session_state.input_values['no10'] = st.number_input("No. 10 (2.0mm)", min_value=None, max_value=100.0, 
-                                                           value=st.session_state.input_values['no10'], step=0.1, format="%.1f")
+    input_labels = {
+        'inch1': "1\" (25.4mm)",
+        'half_inch': "1/2\" (12.7mm)",
+        'three_eighth': "3/8\" (9.5mm)",
+        'no4': "No. 4 (4.75mm)",
+        'no10': "No. 10 (2.0mm)"
+    }
+    for key in ['inch1', 'half_inch', 'three_eighth', 'no4', 'no10']:
+        st.session_state.input_values[key] = st.number_input(
+            input_labels[key],
+            min_value=None,
+            max_value=100.0,
+            value=st.session_state.input_values[key],
+            step=0.1,
+            format="%.1f"
+        )
 
 with col2:
     st.subheader("Fine Sieves")
-    st.session_state.input_values['no20'] = st.number_input("No. 20 (0.85mm)", min_value=None, max_value=100.0, 
-                                                           value=st.session_state.input_values['no20'], step=0.1, format="%.1f")
-    st.session_state.input_values['no40'] = st.number_input("No. 40 (0.425mm)", min_value=None, max_value=100.0, 
-                                                           value=st.session_state.input_values['no40'], step=0.1, format="%.1f")
-    st.session_state.input_values['no60'] = st.number_input("No. 60 (0.25mm)", min_value=None, max_value=100.0, 
-                                                           value=st.session_state.input_values['no60'], step=0.1, format="%.1f")
-    st.session_state.input_values['no100'] = st.number_input("No. 100 (0.15mm)", min_value=None, max_value=100.0, 
-                                                            value=st.session_state.input_values['no100'], step=0.1, format="%.1f")
-    st.session_state.input_values['no200'] = st.number_input("No. 200 (0.075mm)", min_value=None, max_value=100.0, 
-                                                            value=st.session_state.input_values['no200'], step=0.1, format="%.1f")
+    input_labels = {
+        'no20': "No. 20 (0.85mm)",
+        'no40': "No. 40 (0.425mm)",
+        'no60': "No. 60 (0.25mm)",
+        'no100': "No. 100 (0.15mm)",
+        'no200': "No. 200 (0.075mm)"
+    }
+    for key in ['no20', 'no40', 'no60', 'no100', 'no200']:
+        st.session_state.input_values[key] = st.number_input(
+            input_labels[key],
+            min_value=None,
+            max_value=100.0,
+            value=st.session_state.input_values[key],
+            step=0.1,
+            format="%.1f"
+        )
 
 with col3:
     st.subheader("Small Particles & Limits")
-    st.session_state.input_values['p050'] = st.number_input("0.050mm", min_value=None, max_value=100.0, 
-                                                           value=st.session_state.input_values['p050'], step=0.1, format="%.1f")
-    st.session_state.input_values['p020'] = st.number_input("0.020mm", min_value=None, max_value=100.0, 
-                                                           value=st.session_state.input_values['p020'], step=0.1, format="%.1f")
-    st.session_state.input_values['p005'] = st.number_input("0.005mm", min_value=None, max_value=100.0, 
-                                                           value=st.session_state.input_values['p005'], step=0.1, format="%.1f")
-    st.session_state.input_values['p002'] = st.number_input("0.002mm", min_value=None, max_value=100.0, 
-                                                           value=st.session_state.input_values['p002'], step=0.1, format="%.1f")
+    input_labels = {
+        'p050': "0.050mm",
+        'p020': "0.020mm",
+        'p005': "0.005mm",
+        'p002': "0.002mm",
+        'll': "Liquid Limit (LL)",
+        'pl': "Plastic Limit (PL)"
+    }
+    for key in ['p050', 'p020', 'p005', 'p002']:
+        st.session_state.input_values[key] = st.number_input(
+            input_labels[key],
+            min_value=None,
+            max_value=100.0,
+            value=st.session_state.input_values[key],
+            step=0.1,
+            format="%.1f"
+        )
     
     st.markdown("---")
-    st.session_state.input_values['ll'] = st.number_input("Liquid Limit (LL)", min_value=None, max_value=200.0, 
-                                                         value=st.session_state.input_values['ll'], step=0.1, format="%.1f")
-    st.session_state.input_values['pl'] = st.number_input("Plastic Limit (PL)", min_value=None, max_value=200.0, 
-                                                         value=st.session_state.input_values['pl'], step=0.1, format="%.1f")
+    for key in ['ll', 'pl']:
+        st.session_state.input_values[key] = st.number_input(
+            input_labels[key],
+            min_value=None,
+            max_value=200.0,
+            value=st.session_state.input_values[key],
+            step=0.1,
+            format="%.1f"
+        )
 
 # Create a button to trigger classification
 if st.button("Classify Soil", type="primary") or st.session_state.get('classify_clicked', False):
@@ -505,6 +541,41 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
         # Display classification details in its own row
         st.markdown("---")
         st.markdown("### USCS Classification")
+        
+        # Get classification and calculation text
+        classification, calc_text = determine_classification(
+            percent_passing, d_values, st.session_state.input_values['ll'], pi)
+        
+        # Format the calculation text for better readability
+        calc_lines = calc_text.split('\n')
+        data_analysis = []
+        possible_classifications = []
+        determined_classification = None
+        
+        for line in calc_lines:
+            if line.startswith("Data Analysis:"):
+                continue
+            elif line.startswith("Possible Classifications:"):
+                break
+            elif line.startswith("→"):
+                data_analysis.append(line)
+            else:
+                data_analysis.append(line)
+        
+        # Extract key parameters
+        p200 = None
+        p4 = None
+        cu = None
+        cc = None
+        
+        for line in data_analysis:
+            if "#200 passing:" in line:
+                p200 = line.split(":")[1].strip()
+            elif "#4 passing:" in line:
+                p4 = line.split(":")[1].strip()
+            elif "Cu =" in line:
+                cu = line.split("Cu =")[1].split(",")[0].strip()
+                cc = line.split("Cc =")[1].strip()
         
         # Create three columns for analysis sections
         analysis_col1, analysis_col2, analysis_col3 = st.columns(3)
@@ -578,10 +649,4 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
         """, unsafe_allow_html=True)
     
     except Exception as e:
-        st.error(f"Error in classification: {str(e)}")
-
-# Add footer with information
-st.markdown("---")
-st.markdown("""
-💡 **Note:** This tool implements the Unified Soil Classification System (USCS) according to ASTM D2487.
-""") 
+        st.error(f"Error in classification: {str(e)}") 
