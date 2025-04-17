@@ -346,42 +346,56 @@ if st.button("Classify Soil", type="primary"):
         st.markdown("---")
         st.subheader("Classification Results")
         
-        # Create two columns for results
-        res_col1, res_col2 = st.columns([2, 1])
-        
-        with res_col1:
-            # Create grain size distribution plot
-            st.markdown("### Grain Size Distribution")
-            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 12), height_ratios=[2, 1])
-            d_values = plot_grain_size_distribution(percent_passing, ax1)
-            create_plasticity_chart(ax2)
-            if st.session_state.input_values['ll'] is not None and pi is not None:
-                ax2.scatter(st.session_state.input_values['ll'], pi, color='red', s=50)
-            st.pyplot(fig)
+        # Create grain size distribution plot
+        st.markdown("### Grain Size Distribution")
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 14), height_ratios=[2, 1])
+        d_values = plot_grain_size_distribution(percent_passing, ax1)
+        create_plasticity_chart(ax2)
+        if st.session_state.input_values['ll'] is not None and pi is not None:
+            ax2.scatter(st.session_state.input_values['ll'], pi, color='red', s=50)
+        st.pyplot(fig, use_container_width=True)
         
         # Display classification details in its own row
         st.markdown("---")
-        st.markdown("### Classification Details")
+        st.markdown("### USCS Classification")
         classification, calc_text = determine_classification(
             percent_passing, d_values, st.session_state.input_values['ll'], pi)
         
         with st.container(border=True):
+            if classification:
+                st.markdown(f'<div class="soil-class">{classification}</div>', unsafe_allow_html=True)
+            
             st.markdown("#### Classification Process")
-            st.markdown(calc_text)
+            
+            # Format the calculation text for better readability
+            calc_lines = calc_text.split('\n')
+            formatted_calc = ""
+            
+            for line in calc_lines:
+                if line.startswith("Data Analysis:"):
+                    formatted_calc += f"**{line}**\n\n"
+                elif line.startswith("→"):
+                    formatted_calc += f"*{line}*\n"
+                elif line.startswith("Possible Classifications:"):
+                    formatted_calc += f"\n**{line}**\n\n"
+                else:
+                    formatted_calc += f"{line}\n"
+            
+            st.markdown(formatted_calc)
             
             if st.session_state.input_values['ll'] is not None and st.session_state.input_values['pl'] is not None:
-                st.markdown(f"""
+                st.markdown("""
                 #### Atterberg Limits
-                - Liquid Limit (LL) = {st.session_state.input_values['ll']}
-                - Plastic Limit (PL) = {st.session_state.input_values['pl']}
-                - Plasticity Index (PI) = {pi}
-                """)
-        
-        # Display classification in its own row at the bottom
-        st.markdown("---")
-        st.markdown("### USCS Classification")
-        if classification:
-            st.markdown(f'<div class="soil-class">{classification}</div>', unsafe_allow_html=True)
+                | Parameter | Value |
+                |-----------|-------|
+                | Liquid Limit (LL) | {:.1f} |
+                | Plastic Limit (PL) | {:.1f} |
+                | Plasticity Index (PI) | {:.1f} |
+                """.format(
+                    st.session_state.input_values['ll'],
+                    st.session_state.input_values['pl'],
+                    pi
+                ))
     
     except Exception as e:
         st.error(f"Error in classification: {str(e)}")
