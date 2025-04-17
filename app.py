@@ -634,21 +634,27 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
             st.markdown(decision_steps_html, unsafe_allow_html=True)
         
         with analysis_col3:
-            st.markdown('<div class="analysis-section">', unsafe_allow_html=True)
-            st.markdown('<div class="section-title">Atterberg Limits</div>', unsafe_allow_html=True)
-            if st.session_state.input_values['ll'] is not None:
-                st.markdown("""
-                | Parameter | Value |
-                |-----------|-------|
-                | Liquid Limit (LL) | {} |
-                | Plastic Limit (PL) | {} |
-                | Plasticity Index (PI) | {} |
+            st.markdown(f'''
+            <div class="analysis-section">
+                <div class="section-title">Atterberg Limits</div>
+                {"""
+                <table>
+                    <thead>
+                        <tr><th>Parameter</th><th>Value</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Liquid Limit (LL)</td><td>{}</td></tr>
+                        <tr><td>Plastic Limit (PL)</td><td>{}</td></tr>
+                        <tr><td>Plasticity Index (PI)</td><td>{}</td></tr>
+                    </tbody>
+                </table>
                 """.format(
                     "NP" if isinstance(st.session_state.input_values['ll'], str) else f"{st.session_state.input_values['ll']:.1f}",
                     "NP" if isinstance(st.session_state.input_values['pl'], str) else f"{st.session_state.input_values['pl']:.1f}",
                     "NP" if pi == "NP" else (f"{pi:.1f}" if pi is not None else "")
-                ))
-            st.markdown('</div>', unsafe_allow_html=True)
+                ) if st.session_state.input_values['ll'] is not None else "<p>No Atterberg limits data available</p>"}
+            </div>
+            ''', unsafe_allow_html=True)
         
         # Possible Classifications section
         st.markdown("#### Possible Classifications")
