@@ -197,7 +197,7 @@ def determine_classification(percent_passing, d_values, liquid_limit=None, plast
                     calc_text.append("→ Silty fines (Non-plastic)")
                 elif liquid_limit is not None and plasticity_index is not None:
                     if is_cl_ml:
-                        classification = f"{base}M-{base}C"
+                        classification = "SC-SM" if base == "S" else "GC-GM"
                         calc_text.append("→ Silty-clay fines (CL-ML zone)")
                     elif is_clay:
                         classification = f"{base}C"
