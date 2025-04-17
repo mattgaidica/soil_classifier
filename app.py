@@ -701,11 +701,15 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
             ''', unsafe_allow_html=True)
             
         with analysis_col3:
+            # Filter out empty steps and create HTML
+            decision_steps = [line for line in calc_text if line.startswith('→') and len(line) > 1]
+            steps_html = '\n'.join([f'<div class="decision-step">{line}</div>' for line in decision_steps])
+            
             st.markdown(f'''
             <div class="analysis-section">
                 <div class="section-title">Decision Steps</div>
                 <div class="decision-steps">
-                    {''.join([f'<div class="decision-step">{line}</div>' for line in calc_text if line.startswith('→')])}
+                    {steps_html}
                 </div>
             </div>
             ''', unsafe_allow_html=True)
