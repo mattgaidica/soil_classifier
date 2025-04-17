@@ -655,25 +655,27 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
             else:
                 data_analysis.append(line)
         
-        # Extract key parameters
-        p200_str = None
-        p4_str = None
-        cu_str = None
-        cc_str = None
-        
-        for line in data_analysis:
-            if "#200 passing:" in line:
-                p200_str = line.split(":")[1].strip()
-            elif "#4 passing:" in line:
-                p4_str = line.split(":")[1].strip()
-            elif "Cu =" in line:
-                cu_str = line.split("Cu =")[1].split(",")[0].strip()
-                cc_str = line.split("Cc =")[1].strip()
-        
         # Create three columns for analysis sections
         analysis_col1, analysis_col2, analysis_col3 = st.columns(3)
         
         with analysis_col1:
+            # Get the values from the calculation text
+            p200 = st.session_state.input_values['no200']
+            p4 = st.session_state.input_values['no4']
+            
+            # Calculate Cu and Cc if d_values are available
+            cu_display = "None"
+            cc_display = "None"
+            if all(d_values):
+                cu = d_values[0]/d_values[2]  # D60/D10
+                cc = (d_values[1]**2)/(d_values[0]*d_values[2])  # (D30)²/(D60*D10)
+                cu_display = f"{cu:.2f}"
+                cc_display = f"{cc:.2f}"
+            
+            # Format values with proper precision and add % symbol
+            p200_display = f"{p200:.1f}%" if p200 is not None else "None"
+            p4_display = f"{p4:.1f}%" if p4 is not None else "None"
+            
             st.markdown(f'''
             <div class="analysis-section">
                 <div class="section-title">Data Analysis</div>
@@ -682,10 +684,10 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
                         <tr><th>Parameter</th><th>Value</th></tr>
                     </thead>
                     <tbody>
-                        <tr><td>#200 passing</td><td>{p200_str}</td></tr>
-                        <tr><td>#4 passing</td><td>{p4_str}</td></tr>
-                        <tr><td>Cu</td><td>{cu_str}</td></tr>
-                        <tr><td>Cc</td><td>{cc_str}</td></tr>
+                        <tr><td>#200 passing</td><td>{p200_display}</td></tr>
+                        <tr><td>#4 passing</td><td>{p4_display}</td></tr>
+                        <tr><td>Cu</td><td>{cu_display}</td></tr>
+                        <tr><td>Cc</td><td>{cc_display}</td></tr>
                     </tbody>
                 </table>
             </div>
