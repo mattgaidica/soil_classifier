@@ -193,7 +193,7 @@ def determine_classification(percent_passing, d_values, liquid_limit=None, plast
                         classification = f"{base}C"
                         calc_text.append("→ Clay fines (PI>7)")
                     elif 4 <= plasticity_index <= 7:
-                        classification = f"{base}M-{base}C"
+                        classification = "SC-SM" if base == "S" else "GC-GM"
                         calc_text.append("→ Silty-clay fines (4≤PI≤7)")
                     else:
                         classification = f"{base}M"
@@ -212,8 +212,8 @@ def determine_classification(percent_passing, d_values, liquid_limit=None, plast
                                     classification = f"{base}W-{base}C"
                                     calc_text.append("→ Well-graded with clay fines")
                                 elif 4 <= plasticity_index <= 7:
-                                    classification = f"{base}W-{base}M-{base}C"
-                                    calc_text.append("→ Well-graded with silty-clay fines")
+                                    classification = "SW-SM" if base == "S" else "GW-GM"
+                                    calc_text.append("→ Well-graded with silty fines")
                                 else:
                                     classification = f"{base}W-{base}M"
                                     calc_text.append("→ Well-graded with silty fines")
@@ -226,8 +226,8 @@ def determine_classification(percent_passing, d_values, liquid_limit=None, plast
                                     classification = f"{base}P-{base}C"
                                     calc_text.append("→ Poorly-graded with clay fines")
                                 elif 4 <= plasticity_index <= 7:
-                                    classification = f"{base}P-{base}M-{base}C"
-                                    calc_text.append("→ Poorly-graded with silty-clay fines")
+                                    classification = "SP-SM" if base == "S" else "GP-GM"
+                                    calc_text.append("→ Poorly-graded with silty fines")
                                 else:
                                     classification = f"{base}P-{base}M"
                                     calc_text.append("→ Poorly-graded with silty fines")
@@ -265,6 +265,10 @@ def determine_classification(percent_passing, d_values, liquid_limit=None, plast
         "SW", "SP", "SM", "SC", "SW-SC", "SW-SM", "SP-SM", "SP-SC", "SC-SM",
         "CL", "ML", "CH", "MH", "CL-ML"
     ]
+    
+    # If classification is not in all_classes, add it
+    if classification and classification not in all_classes:
+        all_classes.append(classification)
     
     class_text = "\nPossible Classifications:\n"
     class_text += " ".join([f"[{c}]" if c == classification else c for c in all_classes])
