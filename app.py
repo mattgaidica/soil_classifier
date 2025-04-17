@@ -2,11 +2,38 @@ import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import make_interp_spline, interp1d
+from matplotlib.gridspec import GridSpec
 
 def find_intersection(x, y, target_percent):
     """Find the x-value where y equals the target percent."""
     f = interp1d(y, x, bounds_error=False, fill_value="extrapolate")
     return f(target_percent)
+
+def create_plasticity_chart(ax):
+    """Create the plasticity chart for fine-grained soils."""
+    # Plot A-line and U-line
+    ll = np.array([0, 100])
+    a_line = 0.73 * (ll - 20)
+    u_line = 0.9 * (ll - 8)
+    
+    ax.plot(ll, a_line, 'k-', label='A-line')
+    ax.plot(ll, u_line, 'k--', label='U-line')
+    
+    # Add zones with smaller font
+    ax.text(25, 4, 'CL-ML', fontsize=6)
+    ax.text(30, 15, 'CL', fontsize=6)
+    ax.text(70, 40, 'CH', fontsize=6)
+    ax.text(70, 15, 'MH', fontsize=6)
+    ax.text(30, 5, 'ML', fontsize=6)
+    
+    # Set limits and labels with smaller font
+    ax.set_xlim(0, 100)
+    ax.set_ylim(0, 60)
+    ax.set_xlabel('Liquid Limit (LL)', fontsize=8)
+    ax.set_ylabel('Plasticity Index (PI)', fontsize=8)
+    ax.tick_params(labelsize=6)
+    ax.grid(True, alpha=0.3)
+    ax.set_title('Plasticity Chart', fontsize=9)
 
 def plot_grain_size_distribution(percent_passing, ax):
     """Create grain size distribution plot."""
@@ -225,55 +252,95 @@ Enter the percent passing values for each sieve size and optional Atterberg limi
 # Create three columns for input organization
 col1, col2, col3 = st.columns(3)
 
+# Initialize session state for input values if not exists
+if 'input_values' not in st.session_state:
+    st.session_state.input_values = {
+        'inch1': None, 'half_inch': None, 'three_eighth': None, 'no4': None, 'no10': None,
+        'no20': None, 'no40': None, 'no60': None, 'no100': None, 'no200': None,
+        'p050': None, 'p020': None, 'p005': None, 'p002': None,
+        'll': None, 'pl': None
+    }
+
 # Sieve input fields
 with col1:
     st.subheader("Coarse Sieves")
-    inch1 = st.number_input("1\" (25.4mm)", min_value=0.0, max_value=100.0, value=None, step=0.1, format="%.1f")
-    half_inch = st.number_input("1/2\" (12.7mm)", min_value=0.0, max_value=100.0, value=None, step=0.1, format="%.1f")
-    three_eighth = st.number_input("3/8\" (9.5mm)", min_value=0.0, max_value=100.0, value=None, step=0.1, format="%.1f")
-    no4 = st.number_input("No. 4 (4.75mm)", min_value=0.0, max_value=100.0, value=None, step=0.1, format="%.1f")
-    no10 = st.number_input("No. 10 (2.0mm)", min_value=0.0, max_value=100.0, value=None, step=0.1, format="%.1f")
+    st.session_state.input_values['inch1'] = st.number_input("1\" (25.4mm)", min_value=0.0, max_value=100.0, 
+                                                            value=st.session_state.input_values['inch1'], step=0.1, format="%.1f")
+    st.session_state.input_values['half_inch'] = st.number_input("1/2\" (12.7mm)", min_value=0.0, max_value=100.0, 
+                                                                value=st.session_state.input_values['half_inch'], step=0.1, format="%.1f")
+    st.session_state.input_values['three_eighth'] = st.number_input("3/8\" (9.5mm)", min_value=0.0, max_value=100.0, 
+                                                                   value=st.session_state.input_values['three_eighth'], step=0.1, format="%.1f")
+    st.session_state.input_values['no4'] = st.number_input("No. 4 (4.75mm)", min_value=0.0, max_value=100.0, 
+                                                          value=st.session_state.input_values['no4'], step=0.1, format="%.1f")
+    st.session_state.input_values['no10'] = st.number_input("No. 10 (2.0mm)", min_value=0.0, max_value=100.0, 
+                                                           value=st.session_state.input_values['no10'], step=0.1, format="%.1f")
 
 with col2:
     st.subheader("Fine Sieves")
-    no20 = st.number_input("No. 20 (0.85mm)", min_value=0.0, max_value=100.0, value=None, step=0.1, format="%.1f")
-    no40 = st.number_input("No. 40 (0.425mm)", min_value=0.0, max_value=100.0, value=None, step=0.1, format="%.1f")
-    no60 = st.number_input("No. 60 (0.25mm)", min_value=0.0, max_value=100.0, value=None, step=0.1, format="%.1f")
-    no100 = st.number_input("No. 100 (0.15mm)", min_value=0.0, max_value=100.0, value=None, step=0.1, format="%.1f")
-    no200 = st.number_input("No. 200 (0.075mm)", min_value=0.0, max_value=100.0, value=None, step=0.1, format="%.1f")
+    st.session_state.input_values['no20'] = st.number_input("No. 20 (0.85mm)", min_value=0.0, max_value=100.0, 
+                                                           value=st.session_state.input_values['no20'], step=0.1, format="%.1f")
+    st.session_state.input_values['no40'] = st.number_input("No. 40 (0.425mm)", min_value=0.0, max_value=100.0, 
+                                                           value=st.session_state.input_values['no40'], step=0.1, format="%.1f")
+    st.session_state.input_values['no60'] = st.number_input("No. 60 (0.25mm)", min_value=0.0, max_value=100.0, 
+                                                           value=st.session_state.input_values['no60'], step=0.1, format="%.1f")
+    st.session_state.input_values['no100'] = st.number_input("No. 100 (0.15mm)", min_value=0.0, max_value=100.0, 
+                                                            value=st.session_state.input_values['no100'], step=0.1, format="%.1f")
+    st.session_state.input_values['no200'] = st.number_input("No. 200 (0.075mm)", min_value=0.0, max_value=100.0, 
+                                                            value=st.session_state.input_values['no200'], step=0.1, format="%.1f")
 
 with col3:
     st.subheader("Small Particles & Limits")
-    p050 = st.number_input("0.050mm", min_value=0.0, max_value=100.0, value=None, step=0.1, format="%.1f")
-    p020 = st.number_input("0.020mm", min_value=0.0, max_value=100.0, value=None, step=0.1, format="%.1f")
-    p005 = st.number_input("0.005mm", min_value=0.0, max_value=100.0, value=None, step=0.1, format="%.1f")
-    p002 = st.number_input("0.002mm", min_value=0.0, max_value=100.0, value=None, step=0.1, format="%.1f")
+    st.session_state.input_values['p050'] = st.number_input("0.050mm", min_value=0.0, max_value=100.0, 
+                                                           value=st.session_state.input_values['p050'], step=0.1, format="%.1f")
+    st.session_state.input_values['p020'] = st.number_input("0.020mm", min_value=0.0, max_value=100.0, 
+                                                           value=st.session_state.input_values['p020'], step=0.1, format="%.1f")
+    st.session_state.input_values['p005'] = st.number_input("0.005mm", min_value=0.0, max_value=100.0, 
+                                                           value=st.session_state.input_values['p005'], step=0.1, format="%.1f")
+    st.session_state.input_values['p002'] = st.number_input("0.002mm", min_value=0.0, max_value=100.0, 
+                                                           value=st.session_state.input_values['p002'], step=0.1, format="%.1f")
     
     st.markdown("---")
-    ll = st.number_input("Liquid Limit (LL)", min_value=0.0, max_value=200.0, value=None, step=0.1, format="%.1f")
-    pl = st.number_input("Plastic Limit (PL)", min_value=0.0, max_value=200.0, value=None, step=0.1, format="%.1f")
+    st.session_state.input_values['ll'] = st.number_input("Liquid Limit (LL)", min_value=0.0, max_value=200.0, 
+                                                         value=st.session_state.input_values['ll'], step=0.1, format="%.1f")
+    st.session_state.input_values['pl'] = st.number_input("Plastic Limit (PL)", min_value=0.0, max_value=200.0, 
+                                                         value=st.session_state.input_values['pl'], step=0.1, format="%.1f")
 
 # Add a sample data button
 if st.button("Load Sample Data (Soil 1)", type="secondary"):
-    st.session_state.sample_data = True
+    # Sample data for Soil 1
+    sample_data = {
+        'inch1': None, 'half_inch': None, 'three_eighth': None, 'no4': 100.0, 'no10': 82.0,
+        'no20': 76.0, 'no40': 70.0, 'no60': 60.0, 'no100': 43.0, 'no200': 27.0,
+        'p050': 23.0, 'p020': 13.0, 'p005': 8.0, 'p002': 3.0,
+        'll': 35.0, 'pl': 15.0
+    }
+    st.session_state.input_values = sample_data
     st.rerun()
 
 # Create a button to trigger classification
-if st.button("Classify Soil", type="primary") or "sample_data" in st.session_state:
-    # Load sample data if requested
-    if "sample_data" in st.session_state:
-        percent_passing = [None, None, None, 100, 82, 76, 70, 60, 43, 27, 23, 13, 8, 3]
-        ll, pl = 35, 15
-        st.session_state.pop('sample_data')  # Clear the flag
-    else:
-        # Collect all inputs into a list
-        percent_passing = [inch1, half_inch, three_eighth, no4, no10, no20, no40, no60, no100, no200,
-                          p050, p020, p005, p002]
+if st.button("Classify Soil", type="primary"):
+    # Collect all inputs into a list
+    percent_passing = [
+        st.session_state.input_values['inch1'],
+        st.session_state.input_values['half_inch'],
+        st.session_state.input_values['three_eighth'],
+        st.session_state.input_values['no4'],
+        st.session_state.input_values['no10'],
+        st.session_state.input_values['no20'],
+        st.session_state.input_values['no40'],
+        st.session_state.input_values['no60'],
+        st.session_state.input_values['no100'],
+        st.session_state.input_values['no200'],
+        st.session_state.input_values['p050'],
+        st.session_state.input_values['p020'],
+        st.session_state.input_values['p005'],
+        st.session_state.input_values['p002']
+    ]
     
     # Calculate PI if both LL and PL are provided
     pi = None
-    if ll is not None and pl is not None:
-        pi = ll - pl
+    if st.session_state.input_values['ll'] is not None and st.session_state.input_values['pl'] is not None:
+        pi = st.session_state.input_values['ll'] - st.session_state.input_values['pl']
     
     try:
         st.markdown("---")
@@ -285,28 +352,35 @@ if st.button("Classify Soil", type="primary") or "sample_data" in st.session_sta
         with res_col1:
             # Create grain size distribution plot
             st.markdown("### Grain Size Distribution")
-            fig, ax = plt.subplots(figsize=(10, 6))
-            d_values = plot_grain_size_distribution(percent_passing, ax)
+            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 12), height_ratios=[2, 1])
+            d_values = plot_grain_size_distribution(percent_passing, ax1)
+            create_plasticity_chart(ax2)
+            if st.session_state.input_values['ll'] is not None and pi is not None:
+                ax2.scatter(st.session_state.input_values['ll'], pi, color='red', s=50)
             st.pyplot(fig)
         
         with res_col2:
-            st.markdown("### USCS Classification")
+            st.markdown("### Classification Details")
             classification, calc_text = determine_classification(
-                percent_passing, d_values, ll, pi)
+                percent_passing, d_values, st.session_state.input_values['ll'], pi)
             
             with st.container(border=True):
-                if classification:
-                    st.markdown(f'<div class="soil-class">{classification}</div>', unsafe_allow_html=True)
                 st.markdown("#### Classification Process")
                 st.markdown(calc_text)
                 
-                if ll is not None and pl is not None:
+                if st.session_state.input_values['ll'] is not None and st.session_state.input_values['pl'] is not None:
                     st.markdown(f"""
                     #### Atterberg Limits
-                    - Liquid Limit (LL) = {ll}
-                    - Plastic Limit (PL) = {pl}
+                    - Liquid Limit (LL) = {st.session_state.input_values['ll']}
+                    - Plastic Limit (PL) = {st.session_state.input_values['pl']}
                     - Plasticity Index (PI) = {pi}
                     """)
+        
+        # Display classification in its own row at the bottom
+        st.markdown("---")
+        st.markdown("### USCS Classification")
+        if classification:
+            st.markdown(f'<div class="soil-class">{classification}</div>', unsafe_allow_html=True)
     
     except Exception as e:
         st.error(f"Error in classification: {str(e)}")
