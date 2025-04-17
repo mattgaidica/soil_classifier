@@ -519,6 +519,16 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
     # Reset the classify_clicked flag
     st.session_state.classify_clicked = False
     
+    # Calculate PI if both LL and PL are numeric values
+    pi = None
+    if (st.session_state.input_values['ll'] is not None and 
+        st.session_state.input_values['pl'] is not None):
+        if (isinstance(st.session_state.input_values['ll'], str) or 
+            isinstance(st.session_state.input_values['pl'], str)):
+            pi = "NP"
+        else:
+            pi = st.session_state.input_values['ll'] - st.session_state.input_values['pl']
+    
     # Collect all inputs into a list
     percent_passing = [
         st.session_state.input_values['inch1'],
@@ -537,11 +547,6 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
         st.session_state.input_values['p002']
     ]
     
-    # Calculate PI if both LL and PL are provided
-    pi = None
-    if st.session_state.input_values['ll'] is not None and st.session_state.input_values['pl'] is not None:
-        pi = st.session_state.input_values['ll'] - st.session_state.input_values['pl']
-    
     try:
         st.markdown("---")
         st.subheader("Classification Results")
@@ -551,8 +556,14 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 14), height_ratios=[2, 1])
         d_values = plot_grain_size_distribution(percent_passing, ax1)
         create_plasticity_chart(ax2)
-        if st.session_state.input_values['ll'] is not None and pi is not None:
+        
+        # Only plot on plasticity chart if values are numeric
+        if (st.session_state.input_values['ll'] is not None and 
+            pi is not None and 
+            not isinstance(st.session_state.input_values['ll'], str) and 
+            not isinstance(pi, str)):
             ax2.scatter(st.session_state.input_values['ll'], pi, color='red', s=50)
+        
         st.pyplot(fig, use_container_width=True)
         
         # Display classification details
@@ -635,8 +646,7 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
                 """.format(
                     "NP" if isinstance(st.session_state.input_values['ll'], str) else f"{st.session_state.input_values['ll']:.1f}",
                     "NP" if isinstance(st.session_state.input_values['pl'], str) else f"{st.session_state.input_values['pl']:.1f}",
-                    "NP" if isinstance(st.session_state.input_values['ll'], str) or isinstance(st.session_state.input_values['pl'], str) 
-                    else f"{(st.session_state.input_values['ll'] - st.session_state.input_values['pl']):.1f}"
+                    "NP" if pi == "NP" else (f"{pi:.1f}" if pi is not None else "")
                 ))
             st.markdown('</div>', unsafe_allow_html=True)
         
