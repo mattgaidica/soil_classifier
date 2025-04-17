@@ -414,22 +414,12 @@ if 'input_values' not in st.session_state:
         'll': None, 'pl': None
     }
 
-# Add a clear button at the top of the inputs
-if st.button("Clear All Inputs"):
-    st.session_state.input_values = {
-        'inch1': None, 'half_inch': None, 'three_eighth': None, 'no4': None, 'no10': None,
-        'no20': None, 'no40': None, 'no60': None, 'no100': None, 'no200': None,
-        'p050': None, 'p020': None, 'p005': None, 'p002': None,
-        'll': None, 'pl': None
-    }
-    st.rerun()
-
 # Create three columns for input organization
 col1, col2, col3 = st.columns(3)
 
 # Sieve input fields
 with col1:
-    st.subheader("Coarse Sieves")
+    st.subheader("Coarse")
     input_labels = {
         'inch1': "1\" (25.4mm)",
         'half_inch': "1/2\" (12.7mm)",
@@ -438,17 +428,15 @@ with col1:
         'no10': "No. 10 (2.0mm)"
     }
     for key in ['inch1', 'half_inch', 'three_eighth', 'no4', 'no10']:
-        st.session_state.input_values[key] = st.number_input(
+        value = st.text_input(
             input_labels[key],
-            min_value=None,
-            max_value=100.0,
-            value=st.session_state.input_values[key],
-            step=0.1,
-            format="%.1f"
+            value=st.session_state.input_values[key] if st.session_state.input_values[key] is not None else "",
+            key=f"input_{key}"
         )
+        st.session_state.input_values[key] = float(value) if value.strip() else None
 
 with col2:
-    st.subheader("Fine Sieves")
+    st.subheader("Fine")
     input_labels = {
         'no20': "No. 20 (0.85mm)",
         'no40': "No. 40 (0.425mm)",
@@ -457,17 +445,15 @@ with col2:
         'no200': "No. 200 (0.075mm)"
     }
     for key in ['no20', 'no40', 'no60', 'no100', 'no200']:
-        st.session_state.input_values[key] = st.number_input(
+        value = st.text_input(
             input_labels[key],
-            min_value=None,
-            max_value=100.0,
-            value=st.session_state.input_values[key],
-            step=0.1,
-            format="%.1f"
+            value=st.session_state.input_values[key] if st.session_state.input_values[key] is not None else "",
+            key=f"input_{key}"
         )
+        st.session_state.input_values[key] = float(value) if value.strip() else None
 
 with col3:
-    st.subheader("Small Particles & Limits")
+    st.subheader("Small & Limits")
     input_labels = {
         'p050': "0.050mm",
         'p020': "0.020mm",
@@ -477,25 +463,21 @@ with col3:
         'pl': "Plastic Limit (PL)"
     }
     for key in ['p050', 'p020', 'p005', 'p002']:
-        st.session_state.input_values[key] = st.number_input(
+        value = st.text_input(
             input_labels[key],
-            min_value=None,
-            max_value=100.0,
-            value=st.session_state.input_values[key],
-            step=0.1,
-            format="%.1f"
+            value=st.session_state.input_values[key] if st.session_state.input_values[key] is not None else "",
+            key=f"input_{key}"
         )
+        st.session_state.input_values[key] = float(value) if value.strip() else None
     
     st.markdown("---")
     for key in ['ll', 'pl']:
-        st.session_state.input_values[key] = st.number_input(
+        value = st.text_input(
             input_labels[key],
-            min_value=None,
-            max_value=200.0,
-            value=st.session_state.input_values[key],
-            step=0.1,
-            format="%.1f"
+            value=st.session_state.input_values[key] if st.session_state.input_values[key] is not None else "",
+            key=f"input_{key}"
         )
+        st.session_state.input_values[key] = float(value) if value.strip() else None
 
 # Create a button to trigger classification
 if st.button("Classify Soil", type="primary") or st.session_state.get('classify_clicked', False):
