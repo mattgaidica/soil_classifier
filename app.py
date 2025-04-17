@@ -571,42 +571,55 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
         analysis_col1, analysis_col2, analysis_col3 = st.columns(3)
         
         with analysis_col1:
-            st.markdown('<div class="analysis-section">', unsafe_allow_html=True)
-            st.markdown('<div class="section-title">Data Analysis</div>', unsafe_allow_html=True)
-            st.markdown("""
-            | Parameter | Value |
-            |-----------|-------|
-            | #200 passing | {} |
-            | #4 passing | {} |
-            | Cu | {} |
-            | Cc | {} |
-            """.format(p200, p4, cu, cc))
-            st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown(f'''
+            <div class="analysis-section">
+                <div class="section-title">Data Analysis</div>
+                <table>
+                    <thead>
+                        <tr><th>Parameter</th><th>Value</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>#200 passing</td><td>{p200}</td></tr>
+                        <tr><td>#4 passing</td><td>{p4}</td></tr>
+                        <tr><td>Cu</td><td>{cu}</td></tr>
+                        <tr><td>Cc</td><td>{cc}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            ''', unsafe_allow_html=True)
         
         with analysis_col2:
-            st.markdown('<div class="analysis-section">', unsafe_allow_html=True)
-            st.markdown('<div class="section-title">Decision Steps</div>', unsafe_allow_html=True)
+            decision_steps_html = '<div class="analysis-section"><div class="section-title">Decision Steps</div>'
             for line in data_analysis:
                 if line.startswith("→"):
-                    st.markdown(f'<div class="decision-step">{line}</div>', unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
+                    decision_steps_html += f'<div class="decision-step">{line}</div>'
+            decision_steps_html += '</div>'
+            st.markdown(decision_steps_html, unsafe_allow_html=True)
         
         with analysis_col3:
-            st.markdown('<div class="analysis-section">', unsafe_allow_html=True)
-            st.markdown('<div class="section-title">Atterberg Limits</div>', unsafe_allow_html=True)
             if st.session_state.input_values['ll'] is not None and st.session_state.input_values['pl'] is not None:
-                st.markdown("""
-                | Parameter | Value |
-                |-----------|-------|
-                | Liquid Limit (LL) | {:.1f} |
-                | Plastic Limit (PL) | {:.1f} |
-                | Plasticity Index (PI) | {:.1f} |
-                """.format(
-                    st.session_state.input_values['ll'],
-                    st.session_state.input_values['pl'],
-                    pi
-                ))
-            st.markdown('</div>', unsafe_allow_html=True)
+                st.markdown(f'''
+                <div class="analysis-section">
+                    <div class="section-title">Atterberg Limits</div>
+                    <table>
+                        <thead>
+                            <tr><th>Parameter</th><th>Value</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Liquid Limit (LL)</td><td>{st.session_state.input_values['ll']:.1f}</td></tr>
+                            <tr><td>Plastic Limit (PL)</td><td>{st.session_state.input_values['pl']:.1f}</td></tr>
+                            <tr><td>Plasticity Index (PI)</td><td>{pi:.1f}</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                ''', unsafe_allow_html=True)
+            else:
+                st.markdown('''
+                <div class="analysis-section">
+                    <div class="section-title">Atterberg Limits</div>
+                    <p>No Atterberg limits data available</p>
+                </div>
+                ''', unsafe_allow_html=True)
         
         # Possible Classifications section
         st.markdown("#### Possible Classifications")
