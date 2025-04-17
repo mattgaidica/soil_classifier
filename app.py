@@ -705,7 +705,7 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
         with analysis_col3:
             decision_steps_html = '<div class="analysis-section"><div class="section-title">Decision Steps</div>'
             for line in calc_text:
-                if line.startswith("→"):
+                if line.startswith("→ STEP") or line.startswith("→ FINAL"):
                     decision_steps_html += f'<div class="decision-step">{line}</div>'
             decision_steps_html += '</div>'
             st.markdown(decision_steps_html, unsafe_allow_html=True)
