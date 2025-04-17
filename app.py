@@ -113,64 +113,66 @@ def plot_grain_size_distribution(percent_passing, ax):
 
 def determine_classification(percent_passing, d_values, liquid_limit=None, plasticity_index=None):
     """Determine USCS soil classification."""
-    # Get percent passing #200 (0.075mm)
-    p200 = None
-    for size, percent in zip([0.075], [percent_passing[9]]):  # Index 9 is #200 sieve
-        if percent is not None:
-            p200 = percent
+    # Get percent passing #200 (0.075mm) and #4 (4.75mm)
+    p200 = percent_passing[9]  # Index 9 is #200 sieve
+    p4 = percent_passing[3]    # Index 3 is #4 sieve
     
     if p200 is None:
         return None, "Cannot classify: Missing #200 sieve data"
     
-    # Get percent passing #4 (4.75mm)
-    p4 = None
-    for size, percent in zip([4.75], [percent_passing[3]]):  # Index 3 is #4 sieve
-        if percent is not None:
-            p4 = percent
-    
     classification = ""
-    calc_text = f"Data Analysis:\n"
-    calc_text += f"#200 passing: {p200:.1f}%\n"
+    calc_text = []
     
+    # Format the values with proper precision
+    p200_str = f"{p200:.1f}%" if p200 is not None else "None"
+    p4_str = f"{p4:.1f}%" if p4 is not None else "None"
+    
+    # Calculate Cu and Cc if possible
+    cu_str = "None"
+    cc_str = "None"
+    if all(d_values):
+        cu = d_values[0]/d_values[2]  # D60/D10
+        cc = (d_values[1]**2)/(d_values[0]*d_values[2])  # (D30)²/(D60*D10)
+        cu_str = f"{cu:.2f}"
+        cc_str = f"{cc:.2f}"
+    
+    # Store the parameters for display
+    calc_text.append(f"#200 passing: {p200_str}")
+    calc_text.append(f"#4 passing: {p4_str}")
+    if cu_str != "None":
+        calc_text.append(f"Cu = {cu_str}, Cc = {cc_str}")
+    
+    # Classification logic
     if p200 < 50:  # Coarse-grained
-        calc_text += f"#4 passing: {p4:.1f}%\n"
-        
-        # Calculate Cu and Cc if possible
-        if all(d_values):
-            cu = d_values[0]/d_values[2]  # D60/D10
-            cc = (d_values[1]**2)/(d_values[0]*d_values[2])  # (D30)²/(D60*D10)
-            calc_text += f"Cu = {cu:.2f}, Cc = {cc:.2f}\n"
-        
-        # Determine if Gravel or Sand
         coarse_retained = 100 - p4 if p4 is not None else None
         if coarse_retained is not None:
             if coarse_retained > 50:
                 base = "G"  # Gravel
-                calc_text += "→ GRAVEL (>50% retained on #4)\n"
+                calc_text.append("→ GRAVEL (>50% retained on #4)")
             else:
                 base = "S"  # Sand
-                calc_text += "→ SAND (<50% retained on #4)\n"
+                calc_text.append("→ SAND (<50% retained on #4)")
             
             # Determine second letter based on fines and gradation
             if p200 < 5:
                 if all(d_values):
                     if base == "G" and cu >= 4 and 1 <= cc <= 3:
                         classification = f"{base}W"
-                        calc_text += "→ Well-graded (Cu≥4, 1≤Cc≤3)\n"
+                        calc_text.append("→ Well-graded (Cu≥4, 1≤Cc≤3)")
                     elif base == "S" and cu >= 6 and 1 <= cc <= 3:
                         classification = f"{base}W"
-                        calc_text += "→ Well-graded (Cu≥6, 1≤Cc≤3)\n"
+                        calc_text.append("→ Well-graded (Cu≥6, 1≤Cc≤3)")
                     else:
                         classification = f"{base}P"
-                        calc_text += "→ Poorly-graded\n"
+                        calc_text.append("→ Poorly-graded")
             elif p200 > 12:
                 if plasticity_index is not None:
                     if plasticity_index > 7:
                         classification = f"{base}C"
-                        calc_text += "→ Clay fines (PI>7)\n"
+                        calc_text.append("→ Clay fines (PI>7)")
                     else:
                         classification = f"{base}M"
-                        calc_text += "→ Silty fines (PI≤7)\n"
+                        calc_text.append("→ Silty fines (PI≤7)")
             else:  # 5% ≤ p200 ≤ 12%
                 # For dual classification, we need to consider both gradation and plasticity
                 if all(d_values):
@@ -179,44 +181,44 @@ def determine_classification(percent_passing, d_values, liquid_limit=None, plast
                         if plasticity_index is not None:
                             if plasticity_index > 7:
                                 classification = f"{base}W-{base}C"
-                                calc_text += "→ Well-graded with clay fines\n"
+                                calc_text.append("→ Well-graded with clay fines")
                             else:
                                 classification = f"{base}W-{base}M"
-                                calc_text += "→ Well-graded with silty fines\n"
+                                calc_text.append("→ Well-graded with silty fines")
                         else:
                             classification = f"{base}W-{base}M"
-                            calc_text += "→ Well-graded with silty fines (default)\n"
+                            calc_text.append("→ Well-graded with silty fines (default)")
                     else:
                         if plasticity_index is not None:
                             if plasticity_index > 7:
                                 classification = f"{base}P-{base}C"
-                                calc_text += "→ Poorly-graded with clay fines\n"
+                                calc_text.append("→ Poorly-graded with clay fines")
                             else:
                                 classification = f"{base}P-{base}M"
-                                calc_text += "→ Poorly-graded with silty fines\n"
+                                calc_text.append("→ Poorly-graded with silty fines")
                         else:
                             classification = f"{base}P-{base}M"
-                            calc_text += "→ Poorly-graded with silty fines (default)\n"
+                            calc_text.append("→ Poorly-graded with silty fines (default)")
     else:  # Fine-grained
         if liquid_limit is not None and plasticity_index is not None:
-            calc_text += f"LL = {liquid_limit}, PI = {plasticity_index}\n"
+            calc_text.append(f"LL = {liquid_limit}, PI = {plasticity_index}")
             if liquid_limit < 50:
                 if plasticity_index < 4:
                     classification = "ML"
-                    calc_text += "→ Low plasticity silt (PI<4)\n"
+                    calc_text.append("→ Low plasticity silt (PI<4)")
                 elif plasticity_index > 7:
                     classification = "CL"
-                    calc_text += "→ Low plasticity clay (PI>7)\n"
+                    calc_text.append("→ Low plasticity clay (PI>7)")
                 else:
                     classification = "CL-ML"
-                    calc_text += "→ Silty clay (4≤PI≤7)\n"
+                    calc_text.append("→ Silty clay (4≤PI≤7)")
             else:
                 if plasticity_index > 0.73 * (liquid_limit - 20):
                     classification = "CH"
-                    calc_text += "→ High plasticity clay\n"
+                    calc_text.append("→ High plasticity clay")
                 else:
                     classification = "MH"
-                    calc_text += "→ High plasticity silt\n"
+                    calc_text.append("→ High plasticity silt")
     
     # All possible classifications with current one highlighted
     all_classes = [
@@ -228,7 +230,8 @@ def determine_classification(percent_passing, d_values, liquid_limit=None, plast
     class_text = "\nPossible Classifications:\n"
     class_text += " ".join([f"[{c}]" if c == classification else c for c in all_classes])
     
-    return classification, calc_text + class_text
+    # Return the classification and calculation text
+    return classification, "\n".join(calc_text) + "\n" + class_text
 
 # Set page config
 st.set_page_config(
@@ -553,19 +556,19 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
                 data_analysis.append(line)
         
         # Extract key parameters
-        p200 = None
-        p4 = None
-        cu = None
-        cc = None
+        p200_str = None
+        p4_str = None
+        cu_str = None
+        cc_str = None
         
         for line in data_analysis:
             if "#200 passing:" in line:
-                p200 = line.split(":")[1].strip()
+                p200_str = line.split(":")[1].strip()
             elif "#4 passing:" in line:
-                p4 = line.split(":")[1].strip()
+                p4_str = line.split(":")[1].strip()
             elif "Cu =" in line:
-                cu = line.split("Cu =")[1].split(",")[0].strip()
-                cc = line.split("Cc =")[1].strip()
+                cu_str = line.split("Cu =")[1].split(",")[0].strip()
+                cc_str = line.split("Cc =")[1].strip()
         
         # Create three columns for analysis sections
         analysis_col1, analysis_col2, analysis_col3 = st.columns(3)
@@ -579,10 +582,10 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
                         <tr><th>Parameter</th><th>Value</th></tr>
                     </thead>
                     <tbody>
-                        <tr><td>#200 passing</td><td>{p200}</td></tr>
-                        <tr><td>#4 passing</td><td>{p4}</td></tr>
-                        <tr><td>Cu</td><td>{cu}</td></tr>
-                        <tr><td>Cc</td><td>{cc}</td></tr>
+                        <tr><td>#200 passing</td><td>{p200_str}</td></tr>
+                        <tr><td>#4 passing</td><td>{p4_str}</td></tr>
+                        <tr><td>Cu</td><td>{cu_str}</td></tr>
+                        <tr><td>Cc</td><td>{cc_str}</td></tr>
                     </tbody>
                 </table>
             </div>
