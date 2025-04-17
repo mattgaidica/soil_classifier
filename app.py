@@ -194,65 +194,98 @@ def determine_classification(percent_passing, d_values, liquid_limit=None, plast
             elif p200 > 12:  # Gravel or sand with fines
                 if is_non_plastic:
                     classification = f"{base}M"
-                    calc_text.append("→ Silty fines (Non-plastic)")
+                    calc_text.append("→ STEP 1: More than 12% fines")
+                    calc_text.append("→ STEP 2: Fines are non-plastic")
+                    calc_text.append(f"→ FINAL: Classify as {classification}")
                 elif liquid_limit is not None and plasticity_index is not None:
                     if is_cl_ml:
                         classification = "SC-SM" if base == "S" else "GC-GM"
-                        calc_text.append("→ Silty-clay fines (CL-ML zone)")
+                        calc_text.append("→ STEP 1: More than 12% fines")
+                        calc_text.append(f"→ STEP 2: LL = {liquid_limit}, PI = {plasticity_index}")
+                        calc_text.append("→ STEP 3: Plots in CL-ML zone (4 ≤ PI ≤ 7)")
+                        calc_text.append(f"→ FINAL: Classify as {classification}")
                     elif is_clay:
                         classification = f"{base}C"
-                        calc_text.append("→ Clay fines (above A-line)")
+                        calc_text.append("→ STEP 1: More than 12% fines")
+                        calc_text.append(f"→ STEP 2: LL = {liquid_limit}, PI = {plasticity_index}")
+                        calc_text.append("→ STEP 3: Plots above A-line")
+                        calc_text.append(f"→ FINAL: Classify as {classification}")
                     else:
                         classification = f"{base}M"
-                        calc_text.append("→ Silty fines (below A-line)")
+                        calc_text.append("→ STEP 1: More than 12% fines")
+                        calc_text.append(f"→ STEP 2: LL = {liquid_limit}, PI = {plasticity_index}")
+                        calc_text.append("→ STEP 3: Plots below A-line")
+                        calc_text.append(f"→ FINAL: Classify as {classification}")
             else:  # 5% ≤ p200 ≤ 12%
                 if all(d_values):
                     # First determine if well graded
                     if cu >= well_graded_cu and 1 <= cc <= 3:
                         grad = "W"
-                        calc_text.append(f"→ Well-graded (Cu≥{well_graded_cu}, 1≤Cc≤3)")
+                        calc_text.append("→ STEP 1: Between 5% and 12% fines")
+                        calc_text.append(f"→ STEP 2: Well-graded (Cu≥{well_graded_cu}, 1≤Cc≤3)")
                     else:
                         grad = "P"
-                        calc_text.append("→ Poorly-graded")
+                        calc_text.append("→ STEP 1: Between 5% and 12% fines")
+                        calc_text.append("→ STEP 2: Poorly-graded")
                     
                     # Then check plasticity
                     if is_non_plastic:
                         classification = f"{base}{grad}-{base}M"
-                        calc_text.append("→ With silty fines (Non-plastic)")
+                        calc_text.append("→ STEP 3: Fines are non-plastic")
+                        calc_text.append(f"→ FINAL: Classify as {classification}")
                     elif liquid_limit is not None and plasticity_index is not None:
                         if is_cl_ml:
-                            classification = f"{base}M-{base}C"
-                            calc_text.append("→ With silty-clay fines (CL-ML zone)")
+                            classification = "SC-SM" if base == "S" else "GC-GM"
+                            calc_text.append(f"→ STEP 3: LL = {liquid_limit}, PI = {plasticity_index}")
+                            calc_text.append("→ STEP 4: Plots in CL-ML zone (4 ≤ PI ≤ 7)")
+                            calc_text.append(f"→ FINAL: Classify as {classification}")
                         elif is_clay:
                             classification = f"{base}{grad}-{base}C"
-                            calc_text.append("→ With clay fines (above A-line)")
+                            calc_text.append(f"→ STEP 3: LL = {liquid_limit}, PI = {plasticity_index}")
+                            calc_text.append("→ STEP 4: Plots above A-line")
+                            calc_text.append(f"→ FINAL: Classify as {classification}")
                         else:
                             classification = f"{base}{grad}-{base}M"
-                            calc_text.append("→ With silty fines (below A-line)")
+                            calc_text.append(f"→ STEP 3: LL = {liquid_limit}, PI = {plasticity_index}")
+                            calc_text.append("→ STEP 4: Plots below A-line")
+                            calc_text.append(f"→ FINAL: Classify as {classification}")
     
     else:  # Fine-grained
         if is_non_plastic:
             classification = "ML"
-            calc_text.append("→ Silt (Non-plastic)")
+            calc_text.append("→ STEP 1: 50% or more passes #200 sieve")
+            calc_text.append("→ STEP 2: Non-plastic fines")
+            calc_text.append(f"→ FINAL: Classify as {classification}")
         elif liquid_limit is not None and plasticity_index is not None:
-            calc_text.append(f"LL = {liquid_limit}, PI = {plasticity_index}")
+            calc_text.append("→ STEP 1: 50% or more passes #200 sieve")
+            calc_text.append(f"→ STEP 2: LL = {liquid_limit}, PI = {plasticity_index}")
             if liquid_limit < 50:  # Low plasticity
                 if is_cl_ml:
                     classification = "CL-ML"
-                    calc_text.append("→ Silty clay (CL-ML zone)")
+                    calc_text.append("→ STEP 3: Low plasticity (LL < 50)")
+                    calc_text.append("→ STEP 4: Plots in CL-ML zone (4 ≤ PI ≤ 7)")
+                    calc_text.append(f"→ FINAL: Classify as {classification}")
                 elif is_clay:
                     classification = "CL"
-                    calc_text.append("→ Low plasticity clay (above A-line)")
+                    calc_text.append("→ STEP 3: Low plasticity (LL < 50)")
+                    calc_text.append("→ STEP 4: Plots above A-line")
+                    calc_text.append(f"→ FINAL: Classify as {classification}")
                 else:
                     classification = "ML"
-                    calc_text.append("→ Low plasticity silt (below A-line)")
+                    calc_text.append("→ STEP 3: Low plasticity (LL < 50)")
+                    calc_text.append("→ STEP 4: Plots below A-line")
+                    calc_text.append(f"→ FINAL: Classify as {classification}")
             else:  # High plasticity
                 if is_clay:
                     classification = "CH"
-                    calc_text.append("→ High plasticity clay (above A-line)")
+                    calc_text.append("→ STEP 3: High plasticity (LL ≥ 50)")
+                    calc_text.append("→ STEP 4: Plots above A-line")
+                    calc_text.append(f"→ FINAL: Classify as {classification}")
                 else:
                     classification = "MH"
-                    calc_text.append("→ High plasticity silt (below A-line)")
+                    calc_text.append("→ STEP 3: High plasticity (LL ≥ 50)")
+                    calc_text.append("→ STEP 4: Plots below A-line")
+                    calc_text.append(f"→ FINAL: Classify as {classification}")
     
     # All possible classifications with current one highlighted
     all_classes = [
