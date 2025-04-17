@@ -54,7 +54,7 @@ def plot_grain_size_distribution(percent_passing, ax):
     
     # Create smooth curve
     x_smooth = np.logspace(np.log10(max(sizes)), np.log10(min(sizes)), 300)
-    spl = make_interp_spline(sizes[::-1], percentages[::-1], k=3)
+    spl = make_interp_spline(sizes[::-1], percentages[::-1], k=2)
     y_smooth = spl(x_smooth)
     
     # Plot main curve
