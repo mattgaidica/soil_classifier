@@ -334,34 +334,42 @@ soil_data = {
 with col1:
     if st.button("Soil 1", use_container_width=True):
         st.session_state.input_values = soil_data['Soil 1']
+        st.session_state.classify_clicked = True
         st.rerun()
 with col2:
     if st.button("Soil 2", use_container_width=True):
         st.session_state.input_values = soil_data['Soil 2']
+        st.session_state.classify_clicked = True
         st.rerun()
 with col3:
     if st.button("Soil 3", use_container_width=True):
         st.session_state.input_values = soil_data['Soil 3']
+        st.session_state.classify_clicked = True
         st.rerun()
 with col4:
     if st.button("Soil 4", use_container_width=True):
         st.session_state.input_values = soil_data['Soil 4']
+        st.session_state.classify_clicked = True
         st.rerun()
 with col5:
     if st.button("Soil 5", use_container_width=True):
         st.session_state.input_values = soil_data['Soil 5']
+        st.session_state.classify_clicked = True
         st.rerun()
 with col6:
     if st.button("Soil 6", use_container_width=True):
         st.session_state.input_values = soil_data['Soil 6']
+        st.session_state.classify_clicked = True
         st.rerun()
 with col7:
     if st.button("Soil 7", use_container_width=True):
         st.session_state.input_values = soil_data['Soil 7']
+        st.session_state.classify_clicked = True
         st.rerun()
 with col8:
     if st.button("Soil 8", use_container_width=True):
         st.session_state.input_values = soil_data['Soil 8']
+        st.session_state.classify_clicked = True
         st.rerun()
 
 # Create three columns for input organization
@@ -421,7 +429,10 @@ with col3:
                                                          value=st.session_state.input_values['pl'], step=0.1, format="%.1f")
 
 # Create a button to trigger classification
-if st.button("Classify Soil", type="primary"):
+if st.button("Classify Soil", type="primary") or st.session_state.get('classify_clicked', False):
+    # Reset the classify_clicked flag
+    st.session_state.classify_clicked = False
+    
     # Collect all inputs into a list
     percent_passing = [
         st.session_state.input_values['inch1'],
@@ -535,38 +546,35 @@ if st.button("Classify Soil", type="primary"):
             
             # 3. Possible Classifications
             st.markdown("#### Possible Classifications")
-            st.markdown("""
+            st.markdown(f"""
             <div style='display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;'>
-                <div>GW</div>
-                <div>GP</div>
-                <div>GM</div>
-                <div>GC</div>
-                <div>GW-GC</div>
-                <div>GW-GM</div>
-                <div>GP-GM</div>
-                <div>GP-GC</div>
-                <div>GM-GC</div>
-                <div>SW</div>
-                <div>SP</div>
-                <div>SM</div>
-                <div>SC</div>
-                <div>SW-SC</div>
-                <div>SW-SM</div>
-                <div>SP-SM</div>
-                <div>SP-SC</div>
-                <div>SC-SM</div>
-                <div>CL</div>
-                <div>ML</div>
-                <div>CH</div>
-                <div>MH</div>
-                <div>CL-ML</div>
+                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "GW" else ""}'>GW</div>
+                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "GP" else ""}'>GP</div>
+                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "GM" else ""}'>GM</div>
+                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "GC" else ""}'>GC</div>
+                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "GW-GC" else ""}'>GW-GC</div>
+                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "GW-GM" else ""}'>GW-GM</div>
+                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "GP-GM" else ""}'>GP-GM</div>
+                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "GP-GC" else ""}'>GP-GC</div>
+                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "GM-GC" else ""}'>GM-GC</div>
+                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "SW" else ""}'>SW</div>
+                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "SP" else ""}'>SP</div>
+                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "SM" else ""}'>SM</div>
+                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "SC" else ""}'>SC</div>
+                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "SW-SC" else ""}'>SW-SC</div>
+                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "SW-SM" else ""}'>SW-SM</div>
+                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "SP-SM" else ""}'>SP-SM</div>
+                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "SP-SC" else ""}'>SP-SC</div>
+                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "SC-SM" else ""}'>SC-SM</div>
+                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "CL" else ""}'>CL</div>
+                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "ML" else ""}'>ML</div>
+                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "CH" else ""}'>CH</div>
+                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "MH" else ""}'>MH</div>
+                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "CL-ML" else ""}'>CL-ML</div>
             </div>
             """, unsafe_allow_html=True)
             
-            # 4. Determined Classification
-            if classification:
-                st.markdown("#### Determined Classification")
-                st.markdown(f'<div class="soil-class">{classification}</div>', unsafe_allow_html=True)
+            # Remove the Determined Classification section since it's now highlighted in Possible Classifications
     
     except Exception as e:
         st.error(f"Error in classification: {str(e)}")
