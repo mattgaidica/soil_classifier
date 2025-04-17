@@ -283,7 +283,7 @@ soil_data = {
         'inch1': 100.0, 'half_inch': 87.0, 'three_eighth': 82.0, 'no4': 74.0, 'no10': 67.0,
         'no20': 48.0, 'no40': 36.0, 'no60': 22.0, 'no100': 16.0, 'no200': 13.0,
         'p050': 11.0, 'p020': 5.0, 'p005': 4.0, 'p002': 2.0,
-        'll': NP, 'pl': NP
+        'll': None, 'pl': None
     },
     'Soil 6': {
         'inch1': None, 'half_inch': None, 'three_eighth': None, 'no4': None, 'no10': None,
@@ -301,7 +301,7 @@ soil_data = {
         'inch1': 90.0, 'half_inch': 74.0, 'three_eighth': 69.0, 'no4': 64.0, 'no10': 51.0,
         'no20': 37.0, 'no40': 32.0, 'no60': 26.0, 'no100': 14.0, 'no200': 10.0,
         'p050': 10.0, 'p020': 8.0, 'p005': 5.0, 'p002': 2.0,
-        'll': NP, 'pl': NP
+        'll': None, 'pl': None
     }
 }
 
