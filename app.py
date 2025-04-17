@@ -194,26 +194,24 @@ def determine_classification(percent_passing, d_values, liquid_limit=None, plast
             elif p200 > 12:  # Gravel or sand with fines
                 if is_non_plastic:
                     classification = f"{base}M"
+                    calc_text = []  # Reset calc_text
                     calc_text.append("→ STEP 1: More than 12% fines")
                     calc_text.append("→ STEP 2: Fines are non-plastic")
                     calc_text.append(f"→ FINAL: Classify as {classification}")
                 elif liquid_limit is not None and plasticity_index is not None:
+                    calc_text = []  # Reset calc_text
+                    calc_text.append("→ STEP 1: More than 12% fines")
+                    calc_text.append(f"→ STEP 2: LL = {liquid_limit}, PI = {plasticity_index}")
                     if is_cl_ml:
                         classification = "SC-SM" if base == "S" else "GC-GM"
-                        calc_text.append("→ STEP 1: More than 12% fines")
-                        calc_text.append(f"→ STEP 2: LL = {liquid_limit}, PI = {plasticity_index}")
                         calc_text.append("→ STEP 3: Plots in CL-ML zone (4 ≤ PI ≤ 7)")
                         calc_text.append(f"→ FINAL: Classify as {classification}")
                     elif is_clay:
                         classification = f"{base}C"
-                        calc_text.append("→ STEP 1: More than 12% fines")
-                        calc_text.append(f"→ STEP 2: LL = {liquid_limit}, PI = {plasticity_index}")
                         calc_text.append("→ STEP 3: Plots above A-line")
                         calc_text.append(f"→ FINAL: Classify as {classification}")
                     else:
                         classification = f"{base}M"
-                        calc_text.append("→ STEP 1: More than 12% fines")
-                        calc_text.append(f"→ STEP 2: LL = {liquid_limit}, PI = {plasticity_index}")
                         calc_text.append("→ STEP 3: Plots below A-line")
                         calc_text.append(f"→ FINAL: Classify as {classification}")
             else:  # 5% ≤ p200 ≤ 12%
@@ -703,12 +701,14 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
             ''', unsafe_allow_html=True)
             
         with analysis_col3:
-            decision_steps_html = '<div class="analysis-section"><div class="section-title">Decision Steps</div>'
-            for line in calc_text:
-                if line.startswith("→ STEP") or line.startswith("→ FINAL"):
-                    decision_steps_html += f'<div class="decision-step">{line}</div>'
-            decision_steps_html += '</div>'
-            st.markdown(decision_steps_html, unsafe_allow_html=True)
+            st.markdown(f'''
+            <div class="analysis-section">
+                <div class="section-title">Decision Steps</div>
+                <div class="decision-steps">
+                    {''.join([f'<div class="decision-step">{line}</div>' for line in calc_text if line.startswith('→')])}
+                </div>
+            </div>
+            ''', unsafe_allow_html=True)
         
         # Possible Classifications section
         st.markdown("#### Possible Classifications")
