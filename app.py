@@ -678,14 +678,6 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
             ''', unsafe_allow_html=True)
         
         with analysis_col2:
-            decision_steps_html = '<div class="analysis-section"><div class="section-title">Decision Steps</div>'
-            for line in data_analysis:
-                if line.startswith("→"):
-                    decision_steps_html += f'<div class="decision-step">{line}</div>'
-            decision_steps_html += '</div>'
-            st.markdown(decision_steps_html, unsafe_allow_html=True)
-        
-        with analysis_col3:
             table_html = """
             <table>
                 <thead>
@@ -709,6 +701,14 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
                 {table_html}
             </div>
             ''', unsafe_allow_html=True)
+            
+        with analysis_col3:
+            decision_steps_html = '<div class="analysis-section"><div class="section-title">Decision Steps</div>'
+            for line in calc_text:
+                if line.startswith("→"):
+                    decision_steps_html += f'<div class="decision-step">{line}</div>'
+            decision_steps_html += '</div>'
+            st.markdown(decision_steps_html, unsafe_allow_html=True)
         
         # Possible Classifications section
         st.markdown("#### Possible Classifications")
