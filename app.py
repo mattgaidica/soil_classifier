@@ -171,9 +171,32 @@ def determine_classification(percent_passing, d_values, liquid_limit=None, plast
                     else:
                         classification = f"{base}M"
                         calc_text += "→ Silty fines (PI≤7)\n"
-            else:
-                classification = f"{base}P-{base}M"  # Dual classification
-                calc_text += "→ Dual classification (5%<fines<12%)\n"
+            else:  # 5% ≤ p200 ≤ 12%
+                # For dual classification, we need to consider both gradation and plasticity
+                if all(d_values):
+                    well_graded = (base == "G" and cu >= 4 and 1 <= cc <= 3) or (base == "S" and cu >= 6 and 1 <= cc <= 3)
+                    if well_graded:
+                        if plasticity_index is not None:
+                            if plasticity_index > 7:
+                                classification = f"{base}W-{base}C"
+                                calc_text += "→ Well-graded with clay fines\n"
+                            else:
+                                classification = f"{base}W-{base}M"
+                                calc_text += "→ Well-graded with silty fines\n"
+                        else:
+                            classification = f"{base}W-{base}M"
+                            calc_text += "→ Well-graded with silty fines (default)\n"
+                    else:
+                        if plasticity_index is not None:
+                            if plasticity_index > 7:
+                                classification = f"{base}P-{base}C"
+                                calc_text += "→ Poorly-graded with clay fines\n"
+                            else:
+                                classification = f"{base}P-{base}M"
+                                calc_text += "→ Poorly-graded with silty fines\n"
+                        else:
+                            classification = f"{base}P-{base}M"
+                            calc_text += "→ Poorly-graded with silty fines (default)\n"
     else:  # Fine-grained
         if liquid_limit is not None and plasticity_index is not None:
             calc_text += f"LL = {liquid_limit}, PI = {plasticity_index}\n"
@@ -196,9 +219,11 @@ def determine_classification(percent_passing, d_values, liquid_limit=None, plast
                     calc_text += "→ High plasticity silt\n"
     
     # All possible classifications with current one highlighted
-    all_classes = ["GW", "GP", "GM", "GC", "GW-GM", "GW-GC", "GP-GM", "GP-GC", 
-                  "SW", "SP", "SM", "SC", "SW-SM", "SW-SC", "SP-SM", "SP-SC",
-                  "ML", "CL", "MH", "CH", "CL-ML"]
+    all_classes = [
+        "GW", "GP", "GM", "GC", "GW-GC", "GW-GM", "GP-GM", "GP-GC", "GM-GC",
+        "SW", "SP", "SM", "SC", "SW-SC", "SW-SM", "SP-SM", "SP-SC", "SC-SM",
+        "CL", "ML", "CH", "MH", "CL-ML"
+    ]
     
     class_text = "\nPossible Classifications:\n"
     class_text += " ".join([f"[{c}]" if c == classification else c for c in all_classes])
@@ -510,10 +535,33 @@ if st.button("Classify Soil", type="primary"):
             
             # 3. Possible Classifications
             st.markdown("#### Possible Classifications")
-            for line in calc_lines:
-                if line.startswith("Possible Classifications:"):
-                    st.markdown(line)
-                    break
+            st.markdown("""
+            <div style='display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;'>
+                <div>GW</div>
+                <div>GP</div>
+                <div>GM</div>
+                <div>GC</div>
+                <div>GW-GC</div>
+                <div>GW-GM</div>
+                <div>GP-GM</div>
+                <div>GP-GC</div>
+                <div>GM-GC</div>
+                <div>SW</div>
+                <div>SP</div>
+                <div>SM</div>
+                <div>SC</div>
+                <div>SW-SC</div>
+                <div>SW-SM</div>
+                <div>SP-SM</div>
+                <div>SP-SC</div>
+                <div>SC-SM</div>
+                <div>CL</div>
+                <div>ML</div>
+                <div>CH</div>
+                <div>MH</div>
+                <div>CL-ML</div>
+            </div>
+            """, unsafe_allow_html=True)
             
             # 4. Determined Classification
             if classification:
