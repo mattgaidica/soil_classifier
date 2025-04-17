@@ -150,6 +150,15 @@ def determine_classification(percent_passing, d_values, liquid_limit=None, plast
     
     # Classification logic
     if p200 < 50:  # Coarse-grained
+        # If #4 passing is None, use the next available sieve size
+        if p4 is None:
+            # Find the next available sieve size
+            for i in range(4, len(percent_passing)):
+                if percent_passing[i] is not None:
+                    p4 = percent_passing[i]
+                    calc_text.append(f"Using {sieve_sizes[i]}mm sieve ({percent_passing[i]:.1f}%) as #4 equivalent")
+                    break
+        
         coarse_retained = 100 - p4 if p4 is not None else None
         if coarse_retained is not None:
             if coarse_retained > 50:
