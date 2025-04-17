@@ -265,6 +265,39 @@ st.markdown("""
         border-radius: 0.3rem;
         margin: 1rem 0;
     }
+    .classification-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px 0;
+    }
+    .classification-item {
+        text-align: center;
+        padding: 8px;
+        border-radius: 4px;
+    }
+    .classification-selected {
+        background-color: #ffeb3b;
+        font-weight: bold;
+    }
+    .analysis-section {
+        padding: 1rem;
+        border-radius: 0.5rem;
+        background-color: #f8f9fa;
+        margin: 0.5rem;
+    }
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #262730;
+    }
+    .decision-step {
+        font-style: italic;
+        margin: 0.5rem 0;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -472,48 +505,13 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
         # Display classification details in its own row
         st.markdown("---")
         st.markdown("### USCS Classification")
-        classification, calc_text = determine_classification(
-            percent_passing, d_values, st.session_state.input_values['ll'], pi)
         
-        with st.container(border=True):
-            # 1. Classification Process: Data Analysis
-            st.markdown("#### Classification Process")
-            
-            # Format the calculation text for better readability
-            calc_lines = calc_text.split('\n')
-            data_analysis = []
-            possible_classifications = []
-            determined_classification = None
-            
-            for line in calc_lines:
-                if line.startswith("Data Analysis:"):
-                    continue
-                elif line.startswith("Possible Classifications:"):
-                    break
-                elif line.startswith("→"):
-                    data_analysis.append(line)
-                else:
-                    data_analysis.append(line)
-            
-            # Display Data Analysis in a more structured format
-            st.markdown("**Data Analysis:**")
-            
-            # Extract key parameters
-            p200 = None
-            p4 = None
-            cu = None
-            cc = None
-            
-            for line in data_analysis:
-                if "#200 passing:" in line:
-                    p200 = line.split(":")[1].strip()
-                elif "#4 passing:" in line:
-                    p4 = line.split(":")[1].strip()
-                elif "Cu =" in line:
-                    cu = line.split("Cu =")[1].split(",")[0].strip()
-                    cc = line.split("Cc =")[1].strip()
-            
-            # Display parameters in a table
+        # Create three columns for analysis sections
+        analysis_col1, analysis_col2, analysis_col3 = st.columns(3)
+        
+        with analysis_col1:
+            st.markdown('<div class="analysis-section">', unsafe_allow_html=True)
+            st.markdown('<div class="section-title">Data Analysis</div>', unsafe_allow_html=True)
             st.markdown("""
             | Parameter | Value |
             |-----------|-------|
@@ -522,16 +520,20 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
             | Cu | {} |
             | Cc | {} |
             """.format(p200, p4, cu, cc))
-            
-            # Display decision steps
-            st.markdown("**Decision Steps:**")
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        with analysis_col2:
+            st.markdown('<div class="analysis-section">', unsafe_allow_html=True)
+            st.markdown('<div class="section-title">Decision Steps</div>', unsafe_allow_html=True)
             for line in data_analysis:
                 if line.startswith("→"):
-                    st.markdown(f"*{line}*")
-            
-            # 2. Atterberg Limits
+                    st.markdown(f'<div class="decision-step">{line}</div>', unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        with analysis_col3:
+            st.markdown('<div class="analysis-section">', unsafe_allow_html=True)
+            st.markdown('<div class="section-title">Atterberg Limits</div>', unsafe_allow_html=True)
             if st.session_state.input_values['ll'] is not None and st.session_state.input_values['pl'] is not None:
-                st.markdown("#### Atterberg Limits")
                 st.markdown("""
                 | Parameter | Value |
                 |-----------|-------|
@@ -543,38 +545,37 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
                     st.session_state.input_values['pl'],
                     pi
                 ))
-            
-            # 3. Possible Classifications
-            st.markdown("#### Possible Classifications")
-            st.markdown(f"""
-            <div style='display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;'>
-                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "GW" else ""}'>GW</div>
-                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "GP" else ""}'>GP</div>
-                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "GM" else ""}'>GM</div>
-                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "GC" else ""}'>GC</div>
-                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "GW-GC" else ""}'>GW-GC</div>
-                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "GW-GM" else ""}'>GW-GM</div>
-                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "GP-GM" else ""}'>GP-GM</div>
-                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "GP-GC" else ""}'>GP-GC</div>
-                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "GM-GC" else ""}'>GM-GC</div>
-                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "SW" else ""}'>SW</div>
-                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "SP" else ""}'>SP</div>
-                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "SM" else ""}'>SM</div>
-                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "SC" else ""}'>SC</div>
-                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "SW-SC" else ""}'>SW-SC</div>
-                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "SW-SM" else ""}'>SW-SM</div>
-                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "SP-SM" else ""}'>SP-SM</div>
-                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "SP-SC" else ""}'>SP-SC</div>
-                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "SC-SM" else ""}'>SC-SM</div>
-                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "CL" else ""}'>CL</div>
-                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "ML" else ""}'>ML</div>
-                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "CH" else ""}'>CH</div>
-                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "MH" else ""}'>MH</div>
-                <div style='{"background-color: #e6f3ff; padding: 5px; border-radius: 4px;" if classification == "CL-ML" else ""}'>CL-ML</div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Remove the Determined Classification section since it's now highlighted in Possible Classifications
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Possible Classifications section
+        st.markdown("#### Possible Classifications")
+        st.markdown(f"""
+        <div class="classification-grid">
+            <div class="classification-item{" classification-selected" if classification == "GW" else ""}">GW</div>
+            <div class="classification-item{" classification-selected" if classification == "GP" else ""}">GP</div>
+            <div class="classification-item{" classification-selected" if classification == "GM" else ""}">GM</div>
+            <div class="classification-item{" classification-selected" if classification == "GC" else ""}">GC</div>
+            <div class="classification-item{" classification-selected" if classification == "GW-GC" else ""}">GW-GC</div>
+            <div class="classification-item{" classification-selected" if classification == "GW-GM" else ""}">GW-GM</div>
+            <div class="classification-item{" classification-selected" if classification == "GP-GM" else ""}">GP-GM</div>
+            <div class="classification-item{" classification-selected" if classification == "GP-GC" else ""}">GP-GC</div>
+            <div class="classification-item{" classification-selected" if classification == "GM-GC" else ""}">GM-GC</div>
+            <div class="classification-item{" classification-selected" if classification == "SW" else ""}">SW</div>
+            <div class="classification-item{" classification-selected" if classification == "SP" else ""}">SP</div>
+            <div class="classification-item{" classification-selected" if classification == "SM" else ""}">SM</div>
+            <div class="classification-item{" classification-selected" if classification == "SC" else ""}">SC</div>
+            <div class="classification-item{" classification-selected" if classification == "SW-SC" else ""}">SW-SC</div>
+            <div class="classification-item{" classification-selected" if classification == "SW-SM" else ""}">SW-SM</div>
+            <div class="classification-item{" classification-selected" if classification == "SP-SM" else ""}">SP-SM</div>
+            <div class="classification-item{" classification-selected" if classification == "SP-SC" else ""}">SP-SC</div>
+            <div class="classification-item{" classification-selected" if classification == "SC-SM" else ""}">SC-SM</div>
+            <div class="classification-item{" classification-selected" if classification == "CL" else ""}">CL</div>
+            <div class="classification-item{" classification-selected" if classification == "ML" else ""}">ML</div>
+            <div class="classification-item{" classification-selected" if classification == "CH" else ""}">CH</div>
+            <div class="classification-item{" classification-selected" if classification == "MH" else ""}">MH</div>
+            <div class="classification-item{" classification-selected" if classification == "CL-ML" else ""}">CL-ML</div>
+        </div>
+        """, unsafe_allow_html=True)
     
     except Exception as e:
         st.error(f"Error in classification: {str(e)}")
