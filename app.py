@@ -286,17 +286,26 @@ st.markdown("""
         padding: 1rem;
         border-radius: 0.5rem;
         background-color: #f8f9fa;
-        margin: 0.5rem;
+        margin: 0;
     }
     .section-title {
         font-size: 1.1rem;
         font-weight: 600;
-        margin-bottom: 1rem;
+        margin-bottom: 0.5rem;
         color: #262730;
     }
     .decision-step {
         font-style: italic;
-        margin: 0.5rem 0;
+        margin: 0.25rem 0;
+    }
+    /* Remove extra spacing from markdown elements */
+    .element-container {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .stMarkdown {
+        margin: 0 !important;
+        padding: 0 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -520,8 +529,7 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
             ax2.scatter(st.session_state.input_values['ll'], pi, color='red', s=50)
         st.pyplot(fig, use_container_width=True)
         
-        # Display classification details in its own row
-        st.markdown("---")
+        # Display classification details
         st.markdown("### USCS Classification")
         
         # Get classification and calculation text
