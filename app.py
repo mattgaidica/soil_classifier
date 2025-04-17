@@ -142,6 +142,10 @@ def determine_classification(percent_passing, d_values, liquid_limit=None, plast
     if cu_str != "None":
         calc_text.append(f"Cu = {cu_str}, Cc = {cc_str}")
     
+    # Handle NP values for classification
+    is_non_plastic = (isinstance(liquid_limit, str) and liquid_limit.upper() == "NP") or \
+                    (isinstance(plasticity_index, str) and plasticity_index.upper() == "NP")
+    
     # Classification logic
     if p200 < 50:  # Coarse-grained
         coarse_retained = 100 - p4 if p4 is not None else None
@@ -166,7 +170,10 @@ def determine_classification(percent_passing, d_values, liquid_limit=None, plast
                         classification = f"{base}P"
                         calc_text.append("→ Poorly-graded")
             elif p200 > 12:
-                if plasticity_index is not None:
+                if is_non_plastic:
+                    classification = f"{base}M"
+                    calc_text.append("→ Silty fines (Non-plastic)")
+                elif plasticity_index is not None and not isinstance(plasticity_index, str):
                     if plasticity_index > 7:
                         classification = f"{base}C"
                         calc_text.append("→ Clay fines (PI>7)")
@@ -174,33 +181,41 @@ def determine_classification(percent_passing, d_values, liquid_limit=None, plast
                         classification = f"{base}M"
                         calc_text.append("→ Silty fines (PI≤7)")
             else:  # 5% ≤ p200 ≤ 12%
-                # For dual classification, we need to consider both gradation and plasticity
-                if all(d_values):
-                    well_graded = (base == "G" and cu >= 4 and 1 <= cc <= 3) or (base == "S" and cu >= 6 and 1 <= cc <= 3)
-                    if well_graded:
-                        if plasticity_index is not None:
-                            if plasticity_index > 7:
-                                classification = f"{base}W-{base}C"
-                                calc_text.append("→ Well-graded with clay fines")
+                if is_non_plastic:
+                    classification = f"{base}M"
+                    calc_text.append("→ Silty fines (Non-plastic)")
+                else:
+                    # For dual classification, we need to consider both gradation and plasticity
+                    if all(d_values):
+                        well_graded = (base == "G" and cu >= 4 and 1 <= cc <= 3) or (base == "S" and cu >= 6 and 1 <= cc <= 3)
+                        if well_graded:
+                            if plasticity_index is not None:
+                                if plasticity_index > 7:
+                                    classification = f"{base}W-{base}C"
+                                    calc_text.append("→ Well-graded with clay fines")
+                                else:
+                                    classification = f"{base}W-{base}M"
+                                    calc_text.append("→ Well-graded with silty fines")
                             else:
                                 classification = f"{base}W-{base}M"
-                                calc_text.append("→ Well-graded with silty fines")
+                                calc_text.append("→ Well-graded with silty fines (default)")
                         else:
-                            classification = f"{base}W-{base}M"
-                            calc_text.append("→ Well-graded with silty fines (default)")
-                    else:
-                        if plasticity_index is not None:
-                            if plasticity_index > 7:
-                                classification = f"{base}P-{base}C"
-                                calc_text.append("→ Poorly-graded with clay fines")
+                            if plasticity_index is not None:
+                                if plasticity_index > 7:
+                                    classification = f"{base}P-{base}C"
+                                    calc_text.append("→ Poorly-graded with clay fines")
+                                else:
+                                    classification = f"{base}P-{base}M"
+                                    calc_text.append("→ Poorly-graded with silty fines")
                             else:
                                 classification = f"{base}P-{base}M"
-                                calc_text.append("→ Poorly-graded with silty fines")
-                        else:
-                            classification = f"{base}P-{base}M"
-                            calc_text.append("→ Poorly-graded with silty fines (default)")
+                                calc_text.append("→ Poorly-graded with silty fines (default)")
     else:  # Fine-grained
-        if liquid_limit is not None and plasticity_index is not None:
+        if is_non_plastic:
+            classification = "ML"
+            calc_text.append("→ Silt (Non-plastic)")
+        elif liquid_limit is not None and plasticity_index is not None and \
+             not isinstance(liquid_limit, str) and not isinstance(plasticity_index, str):
             calc_text.append(f"LL = {liquid_limit}, PI = {plasticity_index}")
             if liquid_limit < 50:
                 if plasticity_index < 4:
@@ -329,49 +344,49 @@ soil_data = {
         'inch1': None, 'half_inch': None, 'three_eighth': None, 'no4': 100.0, 'no10': 82.0,
         'no20': 76.0, 'no40': 70.0, 'no60': 60.0, 'no100': 43.0, 'no200': 27.0,
         'p050': 23.0, 'p020': 13.0, 'p005': 8.0, 'p002': 3.0,
-        'll': 35.0, 'pl': 15.0
+        'll': 18.0, 'pl': 12.0
     },
     'Soil 2': {
         'inch1': None, 'half_inch': 100.0, 'three_eighth': 98.0, 'no4': 95.0, 'no10': 93.0,
         'no20': 88.0, 'no40': 82.0, 'no60': 75.0, 'no100': 72.0, 'no200': 68.0,
         'p050': 66.0, 'p020': 33.0, 'p005': 21.0, 'p002': 10.0,
-        'll': 18.0, 'pl': 12.0
+        'll': 56.0, 'pl': 31.0
     },
     'Soil 3': {
         'inch1': None, 'half_inch': None, 'three_eighth': None, 'no4': None, 'no10': None,
         'no20': None, 'no40': 100.0, 'no60': 98.0, 'no100': 96.0, 'no200': 95.0,
         'p050': 91.0, 'p020': 84.0, 'p005': 71.0, 'p002': 63.0,
-        'll': 56.0, 'pl': 31.0
+        'll': 71.0, 'pl': 19.0
     },
     'Soil 4': {
         'inch1': None, 'half_inch': 75.0, 'three_eighth': 52.0, 'no4': 37.0, 'no10': 32.0,
         'no20': 23.0, 'no40': 11.0, 'no60': 7.0, 'no100': 4.0, 'no200': 2.0,
         'p050': None, 'p020': None, 'p005': None, 'p002': None,
-        'll': 71.0, 'pl': 19.0
+        'll': "NP", 'pl': "NP"
     },
     'Soil 5': {
         'inch1': 100.0, 'half_inch': 87.0, 'three_eighth': 82.0, 'no4': 74.0, 'no10': 67.0,
         'no20': 48.0, 'no40': 36.0, 'no60': 22.0, 'no100': 16.0, 'no200': 13.0,
         'p050': 11.0, 'p020': 5.0, 'p005': 4.0, 'p002': 2.0,
-        'll': None, 'pl': None
+        'll': 37.0, 'pl': 13.0
     },
     'Soil 6': {
         'inch1': None, 'half_inch': None, 'three_eighth': None, 'no4': None, 'no10': None,
-        'no20': 100.0, 'no40': None, 'no60': None, 'no100': 100.0, 'no200': 99.0,
+        'no20': None, 'no40': 100.0, 'no60': None, 'no100': 100.0, 'no200': 99.0,
         'p050': 82.0, 'p020': 37.0, 'p005': 8.0, 'p002': 6.0,
-        'll': 37.0, 'pl': 13.0
+        'll': 20.0, 'pl': 15.0
     },
     'Soil 7': {
         'inch1': None, 'half_inch': None, 'three_eighth': None, 'no4': None, 'no10': None,
-        'no20': None, 'no40': 98.0, 'no60': 89.0, 'no100': 6.0, 'no200': 0.0,
+        'no20': 100.0, 'no40': 98.0, 'no60': 89.0, 'no100': 6.0, 'no200': 0.0,
         'p050': None, 'p020': None, 'p005': None, 'p002': None,
-        'll': 20.0, 'pl': 15.0
+        'll': "NP", 'pl': "NP"
     },
     'Soil 8': {
         'inch1': 90.0, 'half_inch': 74.0, 'three_eighth': 69.0, 'no4': 64.0, 'no10': 51.0,
         'no20': 37.0, 'no40': 32.0, 'no60': 26.0, 'no100': 14.0, 'no200': 10.0,
         'p050': 10.0, 'p020': 8.0, 'p005': 5.0, 'p002': 2.0,
-        'll': None, 'pl': None
+        'll': 43.0, 'pl': 24.0
     }
 }
 
@@ -483,13 +498,21 @@ with col3:
         st.session_state.input_values[key] = float(value) if value.strip() else None
     
     st.markdown("---")
+    # Special handling for Atterberg limits
     for key in ['ll', 'pl']:
         value = st.text_input(
             input_labels[key],
             value=st.session_state.input_values[key] if st.session_state.input_values[key] is not None else "",
             key=f"input_{key}"
         )
-        st.session_state.input_values[key] = float(value) if value.strip() else None
+        if value.strip():
+            if value.upper() == "NP":
+                st.session_state.input_values[key] = "NP"
+            else:
+                try:
+                    st.session_state.input_values[key] = float(value)
+                except ValueError:
+                    st.error(f"Invalid value for {input_labels[key]}. Please enter a number or 'NP'.")
 
 # Create a button to trigger classification
 if st.button("Classify Soil", type="primary") or st.session_state.get('classify_clicked', False):
@@ -600,29 +623,22 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
             st.markdown(decision_steps_html, unsafe_allow_html=True)
         
         with analysis_col3:
-            if st.session_state.input_values['ll'] is not None and st.session_state.input_values['pl'] is not None:
-                st.markdown(f'''
-                <div class="analysis-section">
-                    <div class="section-title">Atterberg Limits</div>
-                    <table>
-                        <thead>
-                            <tr><th>Parameter</th><th>Value</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td>Liquid Limit (LL)</td><td>{st.session_state.input_values['ll']:.1f}</td></tr>
-                            <tr><td>Plastic Limit (PL)</td><td>{st.session_state.input_values['pl']:.1f}</td></tr>
-                            <tr><td>Plasticity Index (PI)</td><td>{pi:.1f}</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-                ''', unsafe_allow_html=True)
-            else:
-                st.markdown('''
-                <div class="analysis-section">
-                    <div class="section-title">Atterberg Limits</div>
-                    <p>No Atterberg limits data available</p>
-                </div>
-                ''', unsafe_allow_html=True)
+            st.markdown('<div class="analysis-section">', unsafe_allow_html=True)
+            st.markdown('<div class="section-title">Atterberg Limits</div>', unsafe_allow_html=True)
+            if st.session_state.input_values['ll'] is not None:
+                st.markdown("""
+                | Parameter | Value |
+                |-----------|-------|
+                | Liquid Limit (LL) | {} |
+                | Plastic Limit (PL) | {} |
+                | Plasticity Index (PI) | {} |
+                """.format(
+                    "NP" if isinstance(st.session_state.input_values['ll'], str) else f"{st.session_state.input_values['ll']:.1f}",
+                    "NP" if isinstance(st.session_state.input_values['pl'], str) else f"{st.session_state.input_values['pl']:.1f}",
+                    "NP" if isinstance(st.session_state.input_values['ll'], str) or isinstance(st.session_state.input_values['pl'], str) 
+                    else f"{(st.session_state.input_values['ll'] - st.session_state.input_values['pl']):.1f}"
+                ))
+            st.markdown('</div>', unsafe_allow_html=True)
         
         # Possible Classifications section
         st.markdown("#### Possible Classifications")
