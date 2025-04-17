@@ -74,7 +74,9 @@ def plot_grain_size_distribution(percent_passing, ax):
     # Plot percent passing lines and points
     for target in target_percents:
         try:
-            x_intersect = find_intersection(x_smooth, y_smooth, target)
+            # Use linear interpolation for D-value calculations
+            f = interp1d(percentages[::-1], sizes[::-1], bounds_error=False, fill_value="extrapolate")
+            x_intersect = f(target)
             d_values.append(x_intersect)
             # Plot horizontal line in blue
             ax.axhline(y=target, color='blue', linestyle='-', linewidth=1, alpha=0.3)
@@ -372,7 +374,7 @@ soil_data = {
     },
     'Soil 6': {
         'inch1': None, 'half_inch': None, 'three_eighth': None, 'no4': None, 'no10': None,
-        'no20': None, 'no40': 100.0, 'no60': None, 'no100': 100.0, 'no200': 99.0,
+        'no20': None, 'no40': None, 'no60': None, 'no100': 100.0, 'no200': 99.0,
         'p050': 82.0, 'p020': 37.0, 'p005': 8.0, 'p002': 6.0,
         'll': 20.0, 'pl': 15.0
     },
