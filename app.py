@@ -366,6 +366,22 @@ st.markdown("""
         font-style: italic;
         margin: 0.25rem 0;
     }
+    /* Table styles */
+    .analysis-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0.5rem 0;
+    }
+    .analysis-table th,
+    .analysis-table td {
+        padding: 0.5rem;
+        text-align: left;
+        border-bottom: 1px solid #e1e4e8;
+    }
+    .analysis-table th {
+        background-color: #f1f3f4;
+        font-weight: 600;
+    }
     /* Remove extra spacing from markdown elements */
     .element-container {
         margin: 0 !important;
@@ -661,7 +677,7 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
             st.markdown(f'''
             <div class="analysis-section">
                 <div class="section-title">Data Analysis</div>
-                <table>
+                <table class="analysis-table">
                     <thead>
                         <tr><th>Parameter</th><th>Value</th></tr>
                     </thead>
@@ -676,22 +692,18 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
             ''', unsafe_allow_html=True)
         
         with analysis_col2:
-            table_html = """
-            <table>
+            table_html = f"""
+            <table class="analysis-table">
                 <thead>
                     <tr><th>Parameter</th><th>Value</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td>Liquid Limit (LL)</td><td>{}</td></tr>
-                    <tr><td>Plastic Limit (PL)</td><td>{}</td></tr>
-                    <tr><td>Plasticity Index (PI)</td><td>{}</td></tr>
+                    <tr><td>Liquid Limit (LL)</td><td>{"NP" if isinstance(st.session_state.input_values['ll'], str) else f"{st.session_state.input_values['ll']:.1f}"}</td></tr>
+                    <tr><td>Plastic Limit (PL)</td><td>{"NP" if isinstance(st.session_state.input_values['pl'], str) else f"{st.session_state.input_values['pl']:.1f}"}</td></tr>
+                    <tr><td>Plasticity Index (PI)</td><td>{"NP" if pi == "NP" else (f"{pi:.1f}" if pi is not None else "")}</td></tr>
                 </tbody>
             </table>
-            """.format(
-                "NP" if isinstance(st.session_state.input_values['ll'], str) else f"{st.session_state.input_values['ll']:.1f}",
-                "NP" if isinstance(st.session_state.input_values['pl'], str) else f"{st.session_state.input_values['pl']:.1f}",
-                "NP" if pi == "NP" else (f"{pi:.1f}" if pi is not None else "")
-            ) if st.session_state.input_values['ll'] is not None else "<p>No Atterberg limits data available</p>"
+            """ if st.session_state.input_values['ll'] is not None else "<p>No Atterberg limits data available</p>"
             
             st.markdown(f'''
             <div class="analysis-section">
@@ -702,7 +714,7 @@ if st.button("Classify Soil", type="primary") or st.session_state.get('classify_
             
         with analysis_col3:
             # Filter out empty steps and create HTML
-            decision_steps = [line for line in calc_text if line.startswith('→') and len(line) > 1]
+            decision_steps = [line for line in calc_text.split('\n') if line.startswith('→') and len(line) > 1]
             steps_html = '\n'.join([f'<div class="decision-step">{line}</div>' for line in decision_steps])
             
             st.markdown(f'''
