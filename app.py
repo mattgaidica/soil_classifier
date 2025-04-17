@@ -54,8 +54,8 @@ def plot_grain_size_distribution(percent_passing, ax):
     
     # Create smooth curve using linear interpolation
     x_smooth = np.logspace(np.log10(max(sizes)), np.log10(min(sizes)), 300)
-    f = interp1d(percentages[::-1], sizes[::-1], bounds_error=False, fill_value="extrapolate")
-    y_smooth = [f(p) for p in np.linspace(min(percentages), max(percentages), 300)]
+    f = interp1d(sizes[::-1], percentages[::-1], bounds_error=False, fill_value="extrapolate")
+    y_smooth = f(x_smooth)
     
     # Plot main curve
     ax.plot(x_smooth, y_smooth, 'b-', linewidth=1.5)
